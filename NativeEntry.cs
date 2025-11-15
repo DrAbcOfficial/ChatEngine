@@ -3,9 +3,9 @@ using Metamod.Interface;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace Metamod.Template;
-    public class NativeEntry : PluginEntry
-    {
+namespace ChatEngine;
+public class NativeEntry : PluginEntry
+{
     static NativeEntry()
         {
             // 初始化插件接口实例
