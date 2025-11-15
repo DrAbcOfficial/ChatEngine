@@ -8,17 +8,17 @@ internal class Language
     {
         Server,
         ClientChat,
-        ClientConcole
+        ClientConsole
     }
 
     internal static void Print(string code, PrintTarget target, Edict? client = null)
     {
-        string msg = code;
+        string msg = $"{code}\n";
         switch (target)
         {
             case PrintTarget.Server: MetaMod.EngineFuncs.ServerPrint(msg); break;
             case PrintTarget.ClientChat: break;
-            case PrintTarget.ClientConcole:
+            case PrintTarget.ClientConsole:
                 {
                     if (client == null)
                         return;

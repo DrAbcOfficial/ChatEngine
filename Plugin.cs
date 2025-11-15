@@ -1,7 +1,11 @@
 ﻿using ChatEngine.Commands;
+using ChatEngine.Storage;
 using Metamod.Enum.Metamod;
 using Metamod.Interface;
+using Metamod.Interface.Events;
+using Metamod.Wrapper.Engine;
 using Metamod.Wrapper.Metamod;
+using System.Text;
 
 namespace ChatEngine;
 
@@ -46,6 +50,96 @@ public class Plugin : IPlugin
     public bool Meta_Attach(PluginLoadTime now, MetaGlobals pMGlobals, MetaGameDLLFunctions pGamedllFuncs)
     {
         BaseMetaModCommand.RegisterCommands();
+        DLLEvents dLLEvents = new();
+        dLLEvents.ClientCommand += (Edict player) =>
+        {
+            string cmd = MetaMod.EngineFuncs.Cmd_Args();
+            static string[] Split(string input)
+            {
+                if (string.IsNullOrEmpty(input))
+                    return [];
+
+                List<string> result = [];
+                StringBuilder current = new();
+                bool inQuotes = false;
+                int i = 0;
+                while (i < input.Length)
+                {
+                    char c = input[i];
+
+                    if (c == '"')
+                    {
+                        if (i + 1 < input.Length && input[i + 1] == '"')
+                        {
+                            current.Append('"');
+                            i++;
+                        }
+                        else
+                        {
+                            inQuotes = !inQuotes;
+                        }
+                        i++;
+                    }
+                    else if (c == ' ' && !inQuotes)
+                    {
+                        if (current.Length > 0)
+                        {
+                            result.Add(current.ToString());
+                            current.Clear();
+                        }
+                        i++;
+                    }
+                    else
+                    {
+                        current.Append(c);
+                        i++;
+                    }
+                }
+                if (current.Length > 0)
+                {
+                    result.Add(current.ToString());
+                }
+                return result.ToArray();
+            }
+            var args = Split(cmd);
+            if (args.Length > 0)
+            {
+                bool from_chat = false;
+                if (args[0] == "say" || args[0] == "say_team")
+                {
+                    from_chat = true;
+                    args = [.. args.Skip(1)];
+                }
+                if (args.Length > 0)
+                {
+                    string name = args[0].Trim();
+                    if (name.StartsWith("cte_"))
+                    {
+                        name = name[3..];
+                        if (BaseMetaModCommand.Commands.TryGetValue(name, out BaseMetaModCommand? instance))
+                        {
+                            args = [.. args.Skip(1)];
+                            instance.ClientPreExcute(args, player, from_chat);
+                            MetaMod.MetaGlobals.Result = MetaResult.MRES_SUPERCEDE;
+                            return;
+                        }
+                    }
+                }
+            }
+            MetaMod.MetaGlobals.Result = MetaResult.MRES_IGNORED;
+        };
+        dLLEvents.ClientConnect += (Edict player, string pszName, string pszAddress, ref string szRejectReason) =>
+        {
+            PlayerInfo.PlayerConnected(player);
+            MetaMod.MetaGlobals.Result = MetaResult.MRES_HANDLED;
+            return true;
+        };
+        dLLEvents.ClientDisconnect += (Edict player) =>
+        {
+            PlayerInfo.PlayerDisconnected(player);
+            MetaMod.MetaGlobals.Result = MetaResult.MRES_HANDLED;
+        };
+        MetaMod.RegisterEvents(entityApi: dLLEvents);
         return true;
     }
 
