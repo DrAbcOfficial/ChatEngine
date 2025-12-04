@@ -17,12 +17,19 @@ internal class Language
         switch (target)
         {
             case PrintTarget.Server: MetaMod.EngineFuncs.ServerPrint(msg); break;
-            case PrintTarget.ClientChat: break;
+            case PrintTarget.ClientChat:
+                {
+                    if (client == null)
+                        return;
+                    MetaMod.EngineFuncs.ClientPrintf(client, Metamod.Enum.Common.PrintType.print_chat, msg); 
+                    break;
+                }
             case PrintTarget.ClientConsole:
                 {
                     if (client == null)
                         return;
-                    MetaMod.EngineFuncs.ClientPrintf(client, Metamod.Enum.Common.PrintType.print_console, msg); break;
+                    MetaMod.EngineFuncs.ClientPrintf(client, Metamod.Enum.Common.PrintType.print_console, msg); 
+                    break;
                 }
         }
     }

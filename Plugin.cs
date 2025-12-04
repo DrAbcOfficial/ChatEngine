@@ -14,6 +14,7 @@ namespace ChatEngine;
 /// </summary>
 public class Plugin : IPlugin
 {
+    internal const string CMD_PREFIX = "cte_";
     /// <summary>
     /// Plugin information: it is recommended to set it as static to maintain memory availability.
     /// </summary>
@@ -51,78 +52,38 @@ public class Plugin : IPlugin
     {
         BaseMetaModCommand.RegisterCommands();
         DLLEvents dLLEvents = new();
-        dLLEvents.ClientCommand += (Edict player) =>
+        dLLEvents.ClientCommand += player =>
         {
-            string cmd = MetaMod.EngineFuncs.Cmd_Args();
-            static string[] Split(string input)
+            int argc = MetaMod.EngineFuncs.Cmd_Argc();
+            if (argc <= 0)
+                return;
+
+            List<string> args = [];
+            for(int i = 0; i < argc; i++)
             {
-                if (string.IsNullOrEmpty(input))
-                    return [];
-
-                List<string> result = [];
-                StringBuilder current = new();
-                bool inQuotes = false;
-                int i = 0;
-                while (i < input.Length)
-                {
-                    char c = input[i];
-
-                    if (c == '"')
-                    {
-                        if (i + 1 < input.Length && input[i + 1] == '"')
-                        {
-                            current.Append('"');
-                            i++;
-                        }
-                        else
-                        {
-                            inQuotes = !inQuotes;
-                        }
-                        i++;
-                    }
-                    else if (c == ' ' && !inQuotes)
-                    {
-                        if (current.Length > 0)
-                        {
-                            result.Add(current.ToString());
-                            current.Clear();
-                        }
-                        i++;
-                    }
-                    else
-                    {
-                        current.Append(c);
-                        i++;
-                    }
-                }
-                if (current.Length > 0)
-                {
-                    result.Add(current.ToString());
-                }
-                return result.ToArray();
+                args.Add(MetaMod.EngineFuncs.Cmd_Argv(i));
             }
-            var args = Split(cmd);
-            if (args.Length > 0)
+            bool from_chat = false;
+            if (args[0] == "say" || args[0] == "say_team")
             {
-                bool from_chat = false;
-                if (args[0] == "say" || args[0] == "say_team")
+                from_chat = true;
+                args = [.. args.Skip(1)];
+            }
+            if (args.Count > 0)
+            {
+                string name = args[0].Trim();
+                //TODO: 先假设!开头
+                if (from_chat)
+                    name = name.Trim('!');
+                if (name.StartsWith(CMD_PREFIX))
                 {
-                    from_chat = true;
-                    args = [.. args.Skip(1)];
-                }
-                if (args.Length > 0)
-                {
-                    string name = args[0].Trim();
-                    if (name.StartsWith("cte_"))
+                    name = name[(CMD_PREFIX.Length)..];
+                    if (BaseMetaModCommand.Commands.TryGetValue(name, out BaseMetaModCommand? instance))
                     {
-                        name = name[3..];
-                        if (BaseMetaModCommand.Commands.TryGetValue(name, out BaseMetaModCommand? instance))
-                        {
-                            args = [.. args.Skip(1)];
-                            instance.ClientPreExcute(args, player, from_chat);
-                            MetaMod.MetaGlobals.Result = MetaResult.MRES_SUPERCEDE;
-                            return;
-                        }
+                        args = [.. args.Skip(1)];
+                        instance.ClientPreExcute([.. args], player, from_chat);
+                        MetaMod.MetaGlobals.Result = MetaResult.MRES_SUPERCEDE;
+                        return;
                     }
                 }
             }
@@ -134,7 +95,7 @@ public class Plugin : IPlugin
             MetaMod.MetaGlobals.Result = MetaResult.MRES_HANDLED;
             return true;
         };
-        dLLEvents.ClientDisconnect += (Edict player) =>
+        dLLEvents.ClientDisconnect += player =>
         {
             PlayerInfo.PlayerDisconnected(player);
             MetaMod.MetaGlobals.Result = MetaResult.MRES_HANDLED;

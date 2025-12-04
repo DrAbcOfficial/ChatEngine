@@ -109,7 +109,7 @@ internal abstract class BaseMetaModCommand
                 return false;
             }
         }
-        return Excute(arguments, target);
+        return Excute(arguments, target, player);
     }
 
     protected abstract bool Excute(List<MetaModArgument> arguments, Language.PrintTarget printTarget, Edict? player = null);
@@ -124,7 +124,7 @@ internal abstract class BaseMetaModCommand
         foreach (var command in _register)
         {
             Commands.Add(command.Name, command);
-            MetaMod.EngineFuncs.AddServerCommand($"cte_{command.Name}", command.ServerPreExcute);
+            MetaMod.EngineFuncs.AddServerCommand($"{Plugin.CMD_PREFIX}{command.Name}", command.ServerPreExcute);
         }
     }
 }
