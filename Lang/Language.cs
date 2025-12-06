@@ -52,6 +52,18 @@ internal class Language
                 }
         }
     }
+    internal static void PrintAll(string msg, PrintTarget target)
+    {
+        switch (target)
+        {
+            case PrintTarget.Server: MetaMod.EngineFuncs.ServerPrint(msg); break;
+            default:
+                {
+                    ClientPrintf(null, MessageDestination.Broadcast, target, msg);
+                    break;
+                }
+        }
+    }
 
     internal static void SayText(string message, MessageDestination msg_dest, Edict player, Edict? client)
     {

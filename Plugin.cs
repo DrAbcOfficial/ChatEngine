@@ -171,7 +171,7 @@ public class Plugin : IPlugin
         };
         dLLEvents.ClientConnect += (player, pszName, pszAddress, ref szRejectReason) =>
         {
-            var result = PlayerInfo.PlayerConnected(player, pszName);
+            var result = PlayerInfo.PlayerConnected(player, pszName, pszAddress);
             if (!result.Item1)
             {
                 string datetimestr = new DateTimeOffset(result.Item2.BannedUntil!.Value).ToString("o");

@@ -53,11 +53,4 @@ public class Censor
     public int BanDurationMinutes { get; set; } = 30;
     //敏感词库路径
     public string CensorWordsFilePath { get; set; } = "addons/chatengine/censor_words.dic";
-    //玩家退出后是否向所有人在控制台展示其信息
-    //0 不展示
-    //1 展示SteamID
-    //2 展示SteamID和IP
-    public int ShowPlayerInfoOnDisconnect { get; set; } = 0;
-    //玩家退出后是否清理其缓存
-    public bool ClearPlayerInfoOnDisconnect { get; set; } = true;
 }

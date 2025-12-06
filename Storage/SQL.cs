@@ -25,7 +25,8 @@ internal class SQL
         ExecuteNonQuery(connection, transaction, @"
             CREATE TABLE IF NOT EXISTS player_info (
                 SteamID TEXT PRIMARY KEY,
-                NickName TEXT NOT NULL,
+                NickName TEXT NOT NULL DEFAULT '',
+                IP TEXT NOT NULL DEFAULT '',
                 Banned TEXT,
                 Gagged TEXT,
                 Talked INTEGER NOT NULL DEFAULT 0,
@@ -87,10 +88,11 @@ internal class SQL
 
         using var cmd = connection.CreateCommand();
         cmd.CommandText = @"
-            INSERT INTO player_info (SteamID, NickName, Banned, Gagged, Talked, Admin, Flags)
-            VALUES ($steamId, $nickName, $banned, $gagged, $talked, $admin, $flags)
+            INSERT INTO player_info (SteamID, NickName, IP, Banned, Gagged, Talked, Admin, Flags)
+            VALUES ($steamId, $nickName, $ip, $banned, $gagged, $talked, $admin, $flags)
             ON CONFLICT(SteamID) DO UPDATE SET
                 NickName = excluded.NickName,
+                IP = excluded.IP,
                 Banned = excluded.Banned,
                 Gagged = excluded.Gagged,
                 Talked = excluded.Talked,
@@ -99,6 +101,7 @@ internal class SQL
 
         cmd.Parameters.AddWithValue("$steamId", player.SteamID);
         cmd.Parameters.AddWithValue("$nickName", player.NickName);
+        cmd.Parameters.AddWithValue("$ip", player.IP);
         cmd.Parameters.AddWithValue("$banned", player.BannedUntil?.ToString("yyyy-MM-ddTHH:mm:ss") ?? (object)DBNull.Value);
         cmd.Parameters.AddWithValue("$gagged", player.GaggedUntil?.ToString("yyyy-MM-ddTHH:mm:ss") ?? (object)DBNull.Value);
         cmd.Parameters.AddWithValue("$talked", player.TalkedCount);
@@ -108,7 +111,7 @@ internal class SQL
         cmd.ExecuteNonQuery();
     }
 
-    public PlayerInfo GetOrCreatePlayerInfo(string steamId, string initialNickName = "Unknown")
+    public PlayerInfo GetOrCreatePlayerInfo(string steamId, string initialNickName, string ip)
     {
         var dbPlayer = GetPlayerInfo(steamId);
         if (dbPlayer != null)
@@ -117,6 +120,7 @@ internal class SQL
         {
             SteamID = steamId,
             NickName = initialNickName,
+            IP = ip,
             BannedUntil = null,
             GaggedUntil = null,
             TalkedCount = 0,
@@ -132,7 +136,7 @@ internal class SQL
         connection.Open();
 
         using var cmd = connection.CreateCommand();
-        cmd.CommandText = "SELECT NickName, Banned, Gagged, Talked, Admin, Flags FROM player_info WHERE SteamID = $steamId;";
+        cmd.CommandText = "SELECT NickName, IP, Banned, Gagged, Talked, Admin, Flags FROM player_info WHERE SteamID = $steamId;";
         cmd.Parameters.AddWithValue("$steamId", steamId);
 
         using var reader = cmd.ExecuteReader();
@@ -143,6 +147,7 @@ internal class SQL
         {
             SteamID = steamId,
             NickName = reader.GetString("NickName"),
+            IP = reader.GetString("IP"),
             BannedUntil = ParseDateTime(reader, "Banned"),
             GaggedUntil = ParseDateTime(reader, "Gagged"),
             TalkedCount = reader.GetInt64("Talked"),
