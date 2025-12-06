@@ -1,4 +1,6 @@
 ﻿using ChatEngine.Storage.Config;
+using NuggetMod.Enum.Metamod;
+using NuggetMod.Interface;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
@@ -30,9 +32,10 @@ internal class ConfigManager
     public Root Config { get; private set; }
     private ConfigManager()
     {
-        if (File.Exists(CONFIG_FILE))
+        string path = Path.Combine(MetaMod.MetaUtilFuncs.GetGameInfo(GetGameInfoType.GameDirectory), CONFIG_FILE);
+        if (File.Exists(path))
         {
-            string json = File.ReadAllText(CONFIG_FILE);
+            string json = File.ReadAllText(path);
             Config = JsonSerializer.Deserialize(json, ConfigContext.Default.Root) ?? new Root();
         }
         else
@@ -43,12 +46,11 @@ internal class ConfigManager
     }
     public void SaveConfig()
     {
-        string? dir = Path.GetDirectoryName(CONFIG_FILE);
+        string path = Path.Combine(MetaMod.MetaUtilFuncs.GetGameInfo(GetGameInfoType.GameDirectory), CONFIG_FILE);
+        string? dir = Path.GetDirectoryName(path);
         if (!Directory.Exists(dir) && dir != null)
             Directory.CreateDirectory(dir);
-        if (!File.Exists(CONFIG_FILE))
-            File.Create(CONFIG_FILE);
         string json = JsonSerializer.Serialize(Config, ConfigContext.Default.Root);
-        File.WriteAllText(CONFIG_FILE, json);
+        File.WriteAllText(path, json);
     }
 }

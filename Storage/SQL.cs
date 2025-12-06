@@ -1,4 +1,6 @@
 ﻿using Microsoft.Data.Sqlite;
+using NuggetMod.Enum.Metamod;
+using NuggetMod.Interface;
 using System.Data;
 
 namespace ChatEngine.Storage;
@@ -8,8 +10,10 @@ internal class SQL
     private string _connectionString = string.Empty;
     public void Initialize(string dbPath)
     {
-        Directory.CreateDirectory(Path.GetDirectoryName(dbPath)!);
-        _connectionString = $"Data Source={dbPath};";
+        string gamedir = MetaMod.MetaUtilFuncs.GetGameInfo(GetGameInfoType.GameDirectory);
+        string path = Path.Combine(gamedir, dbPath);
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        _connectionString = $"Data Source={path};";
 
         using var connection = new SqliteConnection(_connectionString);
         connection.Open();
@@ -17,7 +21,7 @@ internal class SQL
         using var transaction = connection.BeginTransaction();
 
         // 创建所有表（IF NOT EXISTS）
-        ExecuteNonQuery(connection, @"
+        ExecuteNonQuery(connection, transaction, @"
             CREATE TABLE IF NOT EXISTS player_info (
                 SteamID INTEGER PRIMARY KEY,
                 NickName TEXT NOT NULL,
@@ -28,7 +32,7 @@ internal class SQL
                 Flags TEXT NOT NULL DEFAULT ''
             );");
 
-        ExecuteNonQuery(connection, @"
+        ExecuteNonQuery(connection, transaction, @"
             CREATE TABLE IF NOT EXISTS chat_log (
                 Id INTEGER PRIMARY KEY AUTOINCREMENT,
                 SteamID INTEGER NOT NULL,
@@ -36,7 +40,7 @@ internal class SQL
                 Content TEXT NOT NULL
             );");
 
-        ExecuteNonQuery(connection, @"
+        ExecuteNonQuery(connection, transaction, @"
             CREATE TABLE IF NOT EXISTS ban_log (
                 Id INTEGER PRIMARY KEY AUTOINCREMENT,
                 SteamID INTEGER NOT NULL,
@@ -45,7 +49,7 @@ internal class SQL
                 Until TEXT NOT NULL
             );");
 
-        ExecuteNonQuery(connection, @"
+        ExecuteNonQuery(connection, transaction, @"
             CREATE TABLE IF NOT EXISTS garg_log (
                 Id INTEGER PRIMARY KEY AUTOINCREMENT,
                 SteamID INTEGER NOT NULL,
@@ -54,7 +58,7 @@ internal class SQL
                 Until TEXT NOT NULL
             );");
 
-        ExecuteNonQuery(connection, @"
+        ExecuteNonQuery(connection, transaction, @"
             CREATE TABLE IF NOT EXISTS detected_log (
                 Id INTEGER PRIMARY KEY AUTOINCREMENT,
                 SteamID INTEGER NOT NULL,
@@ -66,9 +70,12 @@ internal class SQL
         transaction.Commit();
     }
 
-    private static void ExecuteNonQuery(SqliteConnection connection, string sql)
+    private static void ExecuteNonQuery(SqliteConnection connection, SqliteTransaction transaction, string sql)
     {
-        using var command = new SqliteCommand(sql, connection);
+        using var command = new SqliteCommand(sql, connection)
+        {
+            Transaction = transaction
+        };
         command.ExecuteNonQuery();
     }
 

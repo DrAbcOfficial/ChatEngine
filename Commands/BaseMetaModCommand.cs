@@ -117,7 +117,7 @@ internal abstract class BaseMetaModCommand
     internal static Dictionary<string, BaseMetaModCommand> Commands = [];
 
     private static readonly List<BaseMetaModCommand> _register = [
-        new CommandHelp("help", "cmd_help_des")
+        new CommandHelp("help", "command.help.cmd_description")
     ];
     internal static void RegisterCommands()
     {

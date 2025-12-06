@@ -24,7 +24,7 @@ internal class CommandHelp(string n, string d) : BaseMetaModCommand(n, d, null)
         foreach (var cmds in Commands)
         {
             string namePart = ProcessField(cmds.Value.Name, 12);
-            string desc1Part = ProcessField(cmds.Value.Description, 18);
+            string desc1Part = ProcessField(Language.GetTranlation(cmds.Value.Description), 18);
             string desc2Part = string.Empty;
             foreach (var arg in cmds.Value.Arguments)
             {

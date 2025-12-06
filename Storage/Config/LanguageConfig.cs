@@ -24,6 +24,7 @@ internal class LanguageConfig
         {"command.help.command", "命令" },
         {"command.help.description", "描述" },
         {"command.help.arguments", "参数" },
-        {"command.help.admin", "权限" }
+        {"command.help.admin", "权限" },
+        {"command.help.cmd_description", "获取所有命令帮助" },
     };
 }

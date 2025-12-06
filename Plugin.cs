@@ -5,6 +5,7 @@ using NuggetMod.Enum.Metamod;
 using NuggetMod.Interface;
 using NuggetMod.Interface.Events;
 using NuggetMod.Wrapper.Metamod;
+using SQLitePCL;
 
 namespace ChatEngine;
 
@@ -38,7 +39,7 @@ public class Plugin : IPlugin
 
     public void MetaInit()
     {
-
+        Batteries.Init();
     }
 
     public bool MetaQuery(InterfaceVersion interfaceVersion, MetaUtilFunctions pMetaUtilFuncs)
@@ -99,7 +100,7 @@ public class Plugin : IPlugin
         dLLEvents.ClientConnect += (player, pszName, pszAddress, ref szRejectReason) =>
         {
             var result = PlayerInfo.PlayerConnected(player, pszName);
-            if(!result.Item1)
+            if (!result.Item1)
             {
                 string datetimestr = new DateTimeOffset(result.Item2.BannedUntil!.Value).ToString("o");
                 szRejectReason = string.Format(Language.GetTranlation("player.banned.connect"), datetimestr);
@@ -112,8 +113,6 @@ public class Plugin : IPlugin
             PlayerInfo.PlayerDisconnected(player);
             return MetaResult.Handled;
         };
-        MetaMod.RegisterEvents(entityApi: dLLEvents);
-
         EngineEvents engineEvents = new();
         engineEvents.RegUserMsg += (pszName, iSize) =>
         {
@@ -124,7 +123,8 @@ public class Plugin : IPlugin
             }
             return (MetaResult.Ignored, 0);
         };
-        MetaMod.RegisterEvents(engineFunctionsPost: engineEvents);
+
+        MetaMod.RegisterEvents(entityApi: dLLEvents, engineFunctionsPost: engineEvents);
         return true;
     }
 
