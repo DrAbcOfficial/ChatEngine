@@ -1,0 +1,65 @@
+﻿namespace ChatEngine.Storage.Config;
+
+public class Censor
+{
+    public List<string> IgnoreCharacters { get; set; } = [" ", "\t", "\n", "#", "!", "@", "$", "%", "^", "&", "*", "(", ")", "_", "-", "+",
+            "=", ",", ".", "/", "?", ";", ":", "\"", "'", "[", "]", "{", "}", "\\", "|", "。", "•", "？", "~", "…", "Ⅱ"];
+    public List<string> NiceWords { get; set; } = [ "我爱这个服务器",
+            "我很享受游戏的时光",
+            "这个服务器很有意思",
+            "我喜欢你",
+            "今天天气真好",
+            "你今天看上去很棒",
+            "你很有品位",
+            "你的中文令人惊讶",
+            "你人真好啊！",
+            "你很有天赋",
+            "我们十分为你骄傲",
+            "鹤发银丝映日月，丹心热血沃新花",
+            "你真幽默",
+            "教师的春风，日日沐我心",
+            "你干得非常好",
+            "我对你的工作表示敬意",
+            "你非常聪明",
+            "一位好老师，胜过万卷书",
+            "你的事业很成功",
+            "你是最出色的",
+            "你看上去帅呆了",
+            "你看上去真精神",
+            "你是那样地美，美得象一首抒情诗",
+            "你全身充溢着少女的纯情和青春的风采",
+            "你非常专业",
+            "一天很短，开心了就笑，不开心了就过会儿再笑",
+            "只要一想到你，我就很开心",
+            "抽，是一种生活艺术；找抽，是一种生活态度",
+            "看到喜欢的人主动找自己的时候最开心了",
+            "人只能活一次，千万别活得太累：应该活得舒心，活得快乐，活得潇洒",
+            "这辈子最开心的事莫过于有一群人惯着我让我各种嚣张各种得瑟",
+            "我哭时，你难过;我笑时，你开心谢谢您",
+            "对着太阳傻笑的一朵花：叫向日葵",
+            "对于生活，我们往往是在度过，往往将最美好的愿望寄予终极",
+            "今天很开心，和你一齐去了旅行，还是我们一年的纪念日",
+            "爱我的，在乎我的，咒你们天天开心快乐",
+            "今天也是好天气☆"];
+    //和谐以后变成的字符
+    public string CensorReplacement { get; set; } = "*";
+    //一句话出现多少个关键词封禁
+    public int MaxLimitPerChat { get; set; } = 3;
+    //整场游戏总计多少个关键词封禁
+    public int MaxLimitPerGame { get; set; } = 5;
+    //暴毙提醒值
+    public int WarnLimitPerGame { get; set; } = 3;
+    //封禁时长(分钟)
+    public int BanDurationMinutes { get; set; } = 30;
+    //SQL储存路径
+    public string SQLStoragePath { get; set; } = "addons/chatengine/chatengine.db";
+    //敏感词库路径
+    public string CensorWordsFilePath { get; set; } = "addons/chatengine/censor_words.dic";
+    //玩家退出后是否向所有人在控制台展示其信息
+    //0 不展示
+    //1 展示SteamID
+    //2 展示SteamID和IP
+    public int ShowPlayerInfoOnDisconnect { get; set; } = 0;
+    //玩家退出后是否清理其缓存
+    public bool ClearPlayerInfoOnDisconnect { get; set; } = true;
+}

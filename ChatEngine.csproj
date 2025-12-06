@@ -21,7 +21,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DrAbc.MetaMod" Version="0.0.1-alpha" />
+    <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="NuggetMod">
+      <HintPath>..\NuggetMod\NuggetMod\bin\Debug\net8.0\NuggetMod.dll</HintPath>
+    </Reference>
   </ItemGroup>
 
   <ItemGroup>

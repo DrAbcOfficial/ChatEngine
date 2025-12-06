@@ -1,11 +1,12 @@
 ﻿using ChatEngine.Commands;
+using ChatEngine.Lang;
 using ChatEngine.Storage;
-using Metamod.Enum.Metamod;
-using Metamod.Interface;
-using Metamod.Interface.Events;
-using Metamod.Wrapper.Engine;
-using Metamod.Wrapper.Metamod;
-using System.Text;
+using NuggetMod.Enum.Metamod;
+using NuggetMod.Interface;
+using NuggetMod.Interface.Events;
+using NuggetMod.Wrapper.Engine;
+using NuggetMod.Wrapper.Metamod;
+using System.Runtime.InteropServices;
 
 namespace ChatEngine;
 
@@ -56,10 +57,10 @@ public class Plugin : IPlugin
         {
             int argc = MetaMod.EngineFuncs.Cmd_Argc();
             if (argc <= 0)
-                return;
+                return MetaResult.MRES_IGNORED;
 
             List<string> args = [];
-            for(int i = 0; i < argc; i++)
+            for (int i = 0; i < argc; i++)
             {
                 args.Add(MetaMod.EngineFuncs.Cmd_Argv(i));
             }
@@ -72,9 +73,14 @@ public class Plugin : IPlugin
             if (args.Count > 0)
             {
                 string name = args[0].Trim();
-                //TODO: 先假设!开头
-                if (from_chat)
-                    name = name.Trim('!');
+                if(from_chat)
+                {
+                    string trigger = name[..1];
+                    if (ConfigManager.Instance.Config.ChatTrigger.Contains(trigger))
+                        name = name[1..];
+                    else
+                        return MetaResult.MRES_IGNORED;
+                }
                 if (name.StartsWith(CMD_PREFIX))
                 {
                     name = name[(CMD_PREFIX.Length)..];
@@ -82,25 +88,35 @@ public class Plugin : IPlugin
                     {
                         args = [.. args.Skip(1)];
                         instance.ClientPreExcute([.. args], player, from_chat);
-                        MetaMod.MetaGlobals.Result = MetaResult.MRES_SUPERCEDE;
-                        return;
+                        return MetaResult.MRES_SUPERCEDE;
                     }
                 }
             }
-            MetaMod.MetaGlobals.Result = MetaResult.MRES_IGNORED;
+            return MetaResult.MRES_IGNORED;
         };
-        dLLEvents.ClientConnect += (Edict player, string pszName, string pszAddress, ref string szRejectReason) =>
+        dLLEvents.ClientConnect += (player, pszName, pszAddress, ref szRejectReason) =>
         {
             PlayerInfo.PlayerConnected(player);
-            MetaMod.MetaGlobals.Result = MetaResult.MRES_HANDLED;
-            return true;
+            return (MetaResult.MRES_HANDLED, true);
         };
         dLLEvents.ClientDisconnect += player =>
         {
             PlayerInfo.PlayerDisconnected(player);
-            MetaMod.MetaGlobals.Result = MetaResult.MRES_HANDLED;
+            return MetaResult.MRES_HANDLED;
         };
         MetaMod.RegisterEvents(entityApi: dLLEvents);
+
+        EngineEvents engineEvents = new();
+        engineEvents.RegUserMsg += (pszName, iSize) =>
+        {
+            if(pszName == "TextMsg")
+            {
+                Language.MessageTextMsg = MetaMod.MetaGlobals.GetOriginalReturn<int>();
+                return (MetaResult.MRES_HANDLED, 0);
+            }
+            return (MetaResult.MRES_IGNORED, 0);
+        };
+        MetaMod.RegisterEvents(engineFunctionsPost: engineEvents);
         return true;
     }
 

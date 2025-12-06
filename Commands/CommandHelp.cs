@@ -1,5 +1,5 @@
 ﻿using ChatEngine.Lang;
-using Metamod.Wrapper.Engine;
+using NuggetMod.Wrapper.Engine;
 
 namespace ChatEngine.Commands;
 
@@ -16,20 +16,20 @@ internal class CommandHelp(string n, string d) : BaseMetaModCommand(n, d, null)
     protected override bool Excute(List<MetaModArgument> arguments, Language.PrintTarget printTarget, Edict? player = null)
     {
         string a = ProcessField("Command", 12);
-        string b = ProcessField("Description", 24);
-        string c = ProcessField("Arguments", 32);
+        string b = ProcessField("Description", 18);
+        string c = ProcessField("Arguments", 24);
         string d = ProcessField("Admin", 3);
         Language.Print($"{a}{b}{c}{d}", printTarget, player);
         foreach (var cmds in Commands)
         {
             string namePart = ProcessField(cmds.Value.Name, 12);
-            string desc1Part = ProcessField(cmds.Value.Description, 24);
+            string desc1Part = ProcessField(cmds.Value.Description, 18);
             string desc2Part = string.Empty;
             foreach (var arg in cmds.Value.Arguments)
             {
                 desc2Part += $"<{arg.Name}:{arg.Type}>";
             }
-            desc2Part = ProcessField(desc2Part, 32);
+            desc2Part = ProcessField(desc2Part, 24);
             string desc3Part = ProcessField(cmds.Value.Admin ? "Yes" : "No", 3);
             Language.Print($"{namePart}{desc1Part}{desc2Part}{desc3Part}", printTarget, player);
         }

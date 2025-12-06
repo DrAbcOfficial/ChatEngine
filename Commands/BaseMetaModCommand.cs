@@ -1,7 +1,7 @@
 ﻿using ChatEngine.Lang;
 using ChatEngine.Storage;
-using Metamod.Interface;
-using Metamod.Wrapper.Engine;
+using NuggetMod.Interface;
+using NuggetMod.Wrapper.Engine;
 
 namespace ChatEngine.Commands;
 

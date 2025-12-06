@@ -1,5 +1,5 @@
-﻿using Metamod.Interface;
-using Metamod.Wrapper.Engine;
+﻿using NuggetMod.Interface;
+using NuggetMod.Wrapper.Engine;
 
 namespace ChatEngine.Storage
 {
