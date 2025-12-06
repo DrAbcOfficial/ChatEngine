@@ -8,4 +8,5 @@ internal class Root
     public List<string> ChatTrigger { get; set; } = ["!", "/", "\\"];
     //SQL储存路径
     public string SQLStoragePath { get; set; } = "addons/chatengine/chatengine.db";
+    public string CommandPrefix { get; set; } = "cte_";
 }

@@ -18,7 +18,6 @@ namespace ChatEngine;
 /// </summary>
 public class Plugin : IPlugin
 {
-    internal const string CMD_PREFIX = "cte_";
     internal static SQL SQLStorage = new();
     /// <summary>
     /// Plugin information: it is recommended to set it as static to maintain memory availability.
@@ -133,9 +132,9 @@ public class Plugin : IPlugin
                         return MetaResult.SuperCEDE;
                     }
                 }
-                if (name.StartsWith(CMD_PREFIX))
+                if (name.StartsWith(ConfigManager.Instance.Config.CommandPrefix))
                 {
-                    name = name[(CMD_PREFIX.Length)..];
+                    name = name[(ConfigManager.Instance.Config.CommandPrefix.Length)..];
                     if (BaseMetaModCommand.Commands.TryGetValue(name, out BaseMetaModCommand? instance))
                     {
                         args = [.. args.Skip(1)];
