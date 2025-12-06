@@ -6,4 +6,6 @@ internal class Root
     public LanguageConfig Language { get; set; } = new();
 
     public List<string> ChatTrigger { get; set; } = ["!", "/", "\\"];
+    //SQL储存路径
+    public string SQLStoragePath { get; set; } = "addons/chatengine/chatengine.db";
 }

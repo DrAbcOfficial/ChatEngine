@@ -23,10 +23,7 @@ internal class ConfigManager
     {
         get
         {
-            if (_instance == null)
-            {
-                _instance = new ConfigManager();
-            }
+            _instance ??= new ConfigManager();
             return _instance;
         }
     }

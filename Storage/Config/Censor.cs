@@ -51,8 +51,6 @@ public class Censor
     public int WarnLimitPerGame { get; set; } = 3;
     //封禁时长(分钟)
     public int BanDurationMinutes { get; set; } = 30;
-    //SQL储存路径
-    public string SQLStoragePath { get; set; } = "addons/chatengine/chatengine.db";
     //敏感词库路径
     public string CensorWordsFilePath { get; set; } = "addons/chatengine/censor_words.dic";
     //玩家退出后是否向所有人在控制台展示其信息

@@ -5,39 +5,48 @@ namespace ChatEngine.Storage
 {
     internal class PlayerInfo
     {
+        internal long SteamID;
+        internal string NickName = "Unknown";
+        internal DateTime? BannedUntil;
+        internal DateTime? GargedUntil;
+        internal long TalkedCount;
         internal bool Admin;
+        internal string[] Flags = [];
 
-        internal bool Banned;
-        internal DateTime BannedUntil;
+        internal static Dictionary<long, PlayerInfo> PlayerStorage = [];
 
-        internal bool Garged;
-        internal DateTime GargedUntil;
-
-        internal string Language = string.Empty;
-
-        internal static Dictionary<string, PlayerInfo> PlayerStorage = [];
-
-        internal static string GetPlayerSteamID(Edict player)
+        internal static long GetPlayerSteamID(Edict player)
         {
             string steamid = MetaMod.EngineFuncs.GetPhysicsKeyValue(player, "*sid");
             if (string.IsNullOrWhiteSpace(steamid))
-                steamid = MetaMod.EngineFuncs.GetPlayerAuthId(player);
-            return steamid;
+                return 0;
+            if(long.TryParse(steamid, out long id))
+                return id;
+            return 0;
         }
-        internal static void PlayerConnected(Edict player)
+        internal static (bool, PlayerInfo) PlayerConnected(Edict player, string name)
         {
-            string steamid = GetPlayerSteamID(player);
-            PlayerStorage.Add(steamid, new());
+            long steamid = GetPlayerSteamID(player);
+            PlayerInfo info = Plugin.SQLStorage.GetOrCreatePlayerInfo(steamid, name);
+            DateTime now = DateTime.UtcNow;
+            if (info.BannedUntil.HasValue && info.BannedUntil.Value > now)
+                return (false, info);
+            PlayerStorage.Add(steamid, info);
+            return (true, info);
         }
         internal static void PlayerDisconnected(Edict player)
         {
-            string playerid = GetPlayerSteamID(player);
-            PlayerStorage.Remove(playerid);
+            long steamid = GetPlayerSteamID(player);
+            if(PlayerStorage.TryGetValue(steamid, out PlayerInfo? info))
+            {
+                Plugin.SQLStorage.UpsertPlayerInfo(info);
+                PlayerStorage.Remove(steamid);
+            }
         }
 
         internal static PlayerInfo? GetPlayerInfo(Edict player)
         {
-            string steamid = GetPlayerSteamID(player);
+            var steamid = GetPlayerSteamID(player);
             if (PlayerStorage.TryGetValue(steamid, out PlayerInfo? info))
                 return info;
             else

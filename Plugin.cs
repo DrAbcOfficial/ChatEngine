@@ -4,9 +4,7 @@ using ChatEngine.Storage;
 using NuggetMod.Enum.Metamod;
 using NuggetMod.Interface;
 using NuggetMod.Interface.Events;
-using NuggetMod.Wrapper.Engine;
 using NuggetMod.Wrapper.Metamod;
-using System.Runtime.InteropServices;
 
 namespace ChatEngine;
 
@@ -16,6 +14,7 @@ namespace ChatEngine;
 public class Plugin : IPlugin
 {
     internal const string CMD_PREFIX = "cte_";
+    internal static SQL SQLStorage = new();
     /// <summary>
     /// Plugin information: it is recommended to set it as static to maintain memory availability.
     /// </summary>
@@ -28,8 +27,8 @@ public class Plugin : IPlugin
         Date = "2025/11/11",
         LogTag = "CTE",
         Url = "github.com",
-        Loadable = PluginLoadTime.PT_ANYTIME,
-        Unloadable = PluginLoadTime.PT_ANYTIME
+        Loadable = PluginLoadTime.Anytime,
+        Unloadable = PluginLoadTime.Anytime
     };
 
     public MetaPluginInfo GetPluginInfo()
@@ -37,19 +36,22 @@ public class Plugin : IPlugin
         return _pluginInfo;
     }
 
-    public void Meta_Init()
+    public void MetaInit()
     {
 
     }
 
-    public bool Meta_Query(InterfaceVersion interfaceVersion, MetaUtilFunctions pMetaUtilFuncs)
+    public bool MetaQuery(InterfaceVersion interfaceVersion, MetaUtilFunctions pMetaUtilFuncs)
     {
         if (interfaceVersion != _pluginInfo.InterfaceVersion)
             return false;
+        //Force load config
+        var config = ConfigManager.Instance;
+        SQLStorage.Initialize(config.Config.SQLStoragePath);
         return true;
     }
 
-    public bool Meta_Attach(PluginLoadTime now, MetaGlobals pMGlobals, MetaGameDLLFunctions pGamedllFuncs)
+    public bool MetaAttach(PluginLoadTime now, MetaGlobals pMGlobals, MetaGameDLLFunctions pGamedllFuncs)
     {
         BaseMetaModCommand.RegisterCommands();
         DLLEvents dLLEvents = new();
@@ -57,7 +59,7 @@ public class Plugin : IPlugin
         {
             int argc = MetaMod.EngineFuncs.Cmd_Argc();
             if (argc <= 0)
-                return MetaResult.MRES_IGNORED;
+                return MetaResult.Ignored;
 
             List<string> args = [];
             for (int i = 0; i < argc; i++)
@@ -73,13 +75,13 @@ public class Plugin : IPlugin
             if (args.Count > 0)
             {
                 string name = args[0].Trim();
-                if(from_chat)
+                if (from_chat)
                 {
                     string trigger = name[..1];
                     if (ConfigManager.Instance.Config.ChatTrigger.Contains(trigger))
                         name = name[1..];
                     else
-                        return MetaResult.MRES_IGNORED;
+                        return MetaResult.Ignored;
                 }
                 if (name.StartsWith(CMD_PREFIX))
                 {
@@ -88,39 +90,45 @@ public class Plugin : IPlugin
                     {
                         args = [.. args.Skip(1)];
                         instance.ClientPreExcute([.. args], player, from_chat);
-                        return MetaResult.MRES_SUPERCEDE;
+                        return MetaResult.SuperCEDE;
                     }
                 }
             }
-            return MetaResult.MRES_IGNORED;
+            return MetaResult.Ignored;
         };
         dLLEvents.ClientConnect += (player, pszName, pszAddress, ref szRejectReason) =>
         {
-            PlayerInfo.PlayerConnected(player);
-            return (MetaResult.MRES_HANDLED, true);
+            var result = PlayerInfo.PlayerConnected(player, pszName);
+            if(!result.Item1)
+            {
+                string datetimestr = new DateTimeOffset(result.Item2.BannedUntil!.Value).ToString("o");
+                szRejectReason = string.Format(Language.GetTranlation("player.banned.connect"), datetimestr);
+                return (MetaResult.SuperCEDE, false);
+            }
+            return (MetaResult.Handled, true);
         };
         dLLEvents.ClientDisconnect += player =>
         {
             PlayerInfo.PlayerDisconnected(player);
-            return MetaResult.MRES_HANDLED;
+            return MetaResult.Handled;
         };
         MetaMod.RegisterEvents(entityApi: dLLEvents);
 
         EngineEvents engineEvents = new();
         engineEvents.RegUserMsg += (pszName, iSize) =>
         {
-            if(pszName == "TextMsg")
+            if (pszName == "TextMsg")
             {
                 Language.MessageTextMsg = MetaMod.MetaGlobals.GetOriginalReturn<int>();
-                return (MetaResult.MRES_HANDLED, 0);
+                return (MetaResult.Handled, 0);
             }
-            return (MetaResult.MRES_IGNORED, 0);
+            return (MetaResult.Ignored, 0);
         };
         MetaMod.RegisterEvents(engineFunctionsPost: engineEvents);
         return true;
     }
 
-    public bool Meta_Detach(PluginLoadTime now, PluginUnloadReason reason)
+    public bool MetaDetach(PluginLoadTime now, PluginUnloadReason reason)
     {
         return true;
     }
