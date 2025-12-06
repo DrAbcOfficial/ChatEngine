@@ -30,6 +30,8 @@ namespace ChatEngine.Storage
                 return (false, info);
             if (info.BannedUntil.HasValue)
                 info.BannedUntil = null;
+            if (info.GaggedUntil.HasValue && info.GaggedUntil.Value <= now)
+                info.GaggedUntil = null;
             PlayerStorage[steamid] = info;
             return (true, info);
         }

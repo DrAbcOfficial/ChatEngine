@@ -196,4 +196,22 @@ internal class SQL
 
         cmd.ExecuteNonQuery();
     }
+
+    public void LogGag(string steamId, string operatorId, DateTime until)
+    {
+        using var connection = new SqliteConnection(_connectionString);
+        connection.Open();
+
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = @"
+            INSERT INTO gag_log (SteamID, Operator, Time, Until)
+            VALUES ($steamId, $operator, $time, $until);";
+
+        cmd.Parameters.AddWithValue("$steamId", steamId);
+        cmd.Parameters.AddWithValue("$operator", operatorId);
+        cmd.Parameters.AddWithValue("$time", DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss"));
+        cmd.Parameters.AddWithValue("$until", until.ToString("yyyy-MM-ddTHH:mm:ss"));
+
+        cmd.ExecuteNonQuery();
+    }
 }

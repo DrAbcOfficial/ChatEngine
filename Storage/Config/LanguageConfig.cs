@@ -10,10 +10,11 @@ internal class LanguageConfig
         {"plugin.loaded", "Chat插件已成功加载" },
         {"player.kicked", "你已被服务器踢出，请文明游戏" },
         {"player.banned", "你已被服务器封禁{0}分钟，请文明游戏" },
-        {"player.garded", "你已被服务器禁言{0}分钟，请文明游戏" },
+        {"player.gagged", "你已被服务器禁言{0}分钟，请文明游戏" },
         {"player.banwarn", "已检测到 {0} 次敏感词汇，达到上限将封禁" },
         {"player.leaved", "玩家: {0} 已经退出游戏，信息如下\nIP: {1}\nSteamID: {2}" },
         {"player.banned.connect", "你已被服务器封禁，解封时间: {0}" },
+        {"player.info.lost", "你的玩家数据丢失，无法在该服务器发言，尝试重新进入服务器" },
 
         {"chat.tag.team", "(团队)" },
         {"chat.tag.dead", "*死亡*" },

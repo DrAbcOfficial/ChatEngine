@@ -108,6 +108,7 @@ public class Plugin : IPlugin
             if (args.Count > 0)
             {
                 string name = args[0].Trim();
+                var printTarget = from_chat ? Language.PrintTarget.ClientChat : Language.PrintTarget.ClientConsole;
                 if (from_chat)
                 {
                     string trigger = name[..1];
@@ -115,6 +116,17 @@ public class Plugin : IPlugin
                         name = name[1..];
                     else
                     {
+                        PlayerInfo? info = PlayerInfo.GetPlayerInfo(player);
+                        if(info == null)
+                        {
+                            Language.PrintWithLang("player.info.lost", printTarget);
+                            return MetaResult.SuperCEDE;
+                        }
+                        if(info.GaggedUntil.HasValue && DateTime.UtcNow <= info.GaggedUntil.Value)
+                        {
+                            Language.PrintWithLang("player.gagged", printTarget, player, (info.GaggedUntil.Value - DateTime.UtcNow).TotalMinutes);
+                            return MetaResult.SuperCEDE;
+                        }
                         string trimmed = msg.Trim().Trim('"');
                         string content = $"{(player.EntVars.DeadFlag != DeadFlag.No ? Language.GetTranlation("chat.tag.dead") : "")}" +
                             $"{(is_teamchat ? Language.GetTranlation("chat.tag.team") : "")} {player.EntVars.NetName}: {trimmed}";
@@ -139,7 +151,6 @@ public class Plugin : IPlugin
                     {
                         args = [.. args.Skip(1)];
                         bool result = instance.ClientPreExcute([.. args], player, from_chat);
-                        var printTarget = from_chat ? Language.PrintTarget.ClientChat : Language.PrintTarget.ClientConsole;
                         Language.PrintWithLang(result ? "command.exec.success" : "command.exec.failed",
                             printTarget,
                             player, instance.Name);
