@@ -51,17 +51,8 @@ internal abstract class BaseMetaModCommand
         int required = _arguments.Count(x => { return !x.Optional; });
         if (arguments.Count < required)
         {
-            Language.Print("args_mismatched", Language.PrintTarget.Server);
+            Language.PrintWithLang("command.exec.failed", Language.PrintTarget.Server, null, Name);
             return;
-        }
-        int max = Math.Max(arguments.Count, _arguments.Count);
-        for (int i = 0; i < max; i++)
-        {
-            if (arguments[i].Type != _arguments[i].Type)
-            {
-                Language.Print("args_mismatched", Language.PrintTarget.Server);
-                return;
-            }
         }
         Excute(arguments, Language.PrintTarget.Server);
     }
@@ -71,9 +62,9 @@ internal abstract class BaseMetaModCommand
         var playerinfo = PlayerInfo.GetPlayerInfo(player);
         if (playerinfo == null)
             return false;
-        if (Admin && !playerinfo.Admin)
+        if (Admin && playerinfo.Admin == Enum.Admin.Player)
         {
-            Language.Print("command.forbidden", target, player);
+            Language.PrintWithLang("command.forbidden", target, player, Enum.Admin.Admin);
             return false;
         }
         List<MetaModArgument> arguments = [];
@@ -95,21 +86,8 @@ internal abstract class BaseMetaModCommand
                 arguments.Add(new(trimmed));
         }
         int required = _arguments.Count(x => { return !x.Optional; });
-
         if (arguments.Count < required)
-        {
-            Language.Print("command.exec.failed", target, player);
             return false;
-        }
-        int max = Math.Max(arguments.Count, _arguments.Count);
-        for (int i = 0; i < max; i++)
-        {
-            if (arguments[i].Type != _arguments[i].Type)
-            {
-                Language.Print("command.exec.failed", target, player);
-                return false;
-            }
-        }
         return Excute(arguments, target, player);
     }
 
@@ -118,7 +96,15 @@ internal abstract class BaseMetaModCommand
     internal static Dictionary<string, BaseMetaModCommand> Commands = [];
 
     private static readonly List<BaseMetaModCommand> _register = [
-        new CommandHelp("help", "command.help.cmd_description")
+        new CommandHelp("help", "command.help.cmd_description"),
+        new CommandBan("ban", "command.ban.description", [
+            new ArgumentsDescriptor("SteamID", "command.ban.steamid.description"),
+            new ArgumentsDescriptor("Time", "command.ban.bantime.description"),
+            new ArgumentsDescriptor("Reason", "command.ban.reason.description", true),
+        ]),
+        new CommandBan("removeban", "command.removeban.description", [
+            new ArgumentsDescriptor("SteamID", "command.removeban.steamid.description")
+        ])
     ];
     internal static void RegisterCommands()
     {

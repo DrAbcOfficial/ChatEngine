@@ -138,7 +138,20 @@ public class Plugin : IPlugin
                     if (BaseMetaModCommand.Commands.TryGetValue(name, out BaseMetaModCommand? instance))
                     {
                         args = [.. args.Skip(1)];
-                        instance.ClientPreExcute([.. args], player, from_chat);
+                        bool result = instance.ClientPreExcute([.. args], player, from_chat);
+                        var printTarget = from_chat ? Language.PrintTarget.ClientChat : Language.PrintTarget.ClientConsole;
+                        Language.PrintWithLang(result ? "command.exec.success" : "command.exec.failed",
+                            printTarget,
+                            player, instance.Name);
+                        if(!result)
+                        {
+                            string desc = $"{ConfigManager.Instance.Config.CommandPrefix}{instance.Name} ";
+                            foreach (var arg in instance.Arguments)
+                            {
+                                desc += (arg.Optional ? $"[{arg.Name}] " : $"<{arg.Name}> ");
+                            }
+                            Language.Print(desc, printTarget, player);
+                        }
                         return MetaResult.SuperCEDE;
                     }
                 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.Data.Sqlite;
+﻿using ChatEngine.Commands.Enum;
+using Microsoft.Data.Sqlite;
 using NuggetMod.Enum.Metamod;
 using NuggetMod.Interface;
 using System.Data;
@@ -23,7 +24,7 @@ internal class SQL
         // 创建所有表（IF NOT EXISTS）
         ExecuteNonQuery(connection, transaction, @"
             CREATE TABLE IF NOT EXISTS player_info (
-                SteamID INTEGER PRIMARY KEY,
+                SteamID TEXT PRIMARY KEY,
                 NickName TEXT NOT NULL,
                 Banned TEXT,
                 Garged TEXT,
@@ -35,7 +36,7 @@ internal class SQL
         ExecuteNonQuery(connection, transaction, @"
             CREATE TABLE IF NOT EXISTS chat_log (
                 Id INTEGER PRIMARY KEY AUTOINCREMENT,
-                SteamID INTEGER NOT NULL,
+                SteamID TEXT NOT NULL,
                 Time TEXT NOT NULL,
                 Type INTEGER NOT NULL,
                 Content TEXT NOT NULL
@@ -44,7 +45,7 @@ internal class SQL
         ExecuteNonQuery(connection, transaction, @"
             CREATE TABLE IF NOT EXISTS ban_log (
                 Id INTEGER PRIMARY KEY AUTOINCREMENT,
-                SteamID INTEGER NOT NULL,
+                SteamID TEXT NOT NULL,
                 Operator INTEGER,
                 Time TEXT NOT NULL,
                 Until TEXT NOT NULL
@@ -53,7 +54,7 @@ internal class SQL
         ExecuteNonQuery(connection, transaction, @"
             CREATE TABLE IF NOT EXISTS garg_log (
                 Id INTEGER PRIMARY KEY AUTOINCREMENT,
-                SteamID INTEGER NOT NULL,
+                SteamID TEXT NOT NULL,
                 Operator INTEGER,
                 Time TEXT NOT NULL,
                 Until TEXT NOT NULL
@@ -62,7 +63,7 @@ internal class SQL
         ExecuteNonQuery(connection, transaction, @"
             CREATE TABLE IF NOT EXISTS detected_log (
                 Id INTEGER PRIMARY KEY AUTOINCREMENT,
-                SteamID INTEGER NOT NULL,
+                SteamID TEXT NOT NULL,
                 Time TEXT NOT NULL,
                 Content TEXT NOT NULL,
                 Detected TEXT NOT NULL
@@ -105,13 +106,13 @@ internal class SQL
         cmd.Parameters.AddWithValue("$banned", player.BannedUntil?.ToString("yyyy-MM-ddTHH:mm:ss") ?? (object)DBNull.Value);
         cmd.Parameters.AddWithValue("$garged", player.GargedUntil?.ToString("yyyy-MM-ddTHH:mm:ss") ?? (object)DBNull.Value);
         cmd.Parameters.AddWithValue("$talked", player.TalkedCount);
-        cmd.Parameters.AddWithValue("$admin", player.Admin ? 1 : 0);
+        cmd.Parameters.AddWithValue("$admin", (int)player.Admin);
         cmd.Parameters.AddWithValue("$flags", string.Join(",", player.Flags));
 
         cmd.ExecuteNonQuery();
     }
 
-    public PlayerInfo GetOrCreatePlayerInfo(long steamId, string initialNickName = "Unknown")
+    public PlayerInfo GetOrCreatePlayerInfo(string steamId, string initialNickName = "Unknown")
     {
         var dbPlayer = GetPlayerInfo(steamId);
         if (dbPlayer != null)
@@ -123,13 +124,13 @@ internal class SQL
             BannedUntil = null,
             GargedUntil = null,
             TalkedCount = 0,
-            Admin = false,
+            Admin = Admin.Player,
             Flags = []
         };
         UpsertPlayerInfo(newPlayer);
         return newPlayer;
     }
-    public PlayerInfo? GetPlayerInfo(long steamId)
+    public PlayerInfo? GetPlayerInfo(string steamId)
     {
         using var connection = new SqliteConnection(_connectionString);
         connection.Open();
@@ -149,7 +150,7 @@ internal class SQL
             BannedUntil = ParseDateTime(reader, "Banned"),
             GargedUntil = ParseDateTime(reader, "Garged"),
             TalkedCount = reader.GetInt64("Talked"),
-            Admin = reader.GetBoolean("Admin"),
+            Admin = (Admin)reader.GetInt32("Admin"),
             Flags = ParseFlags(reader.GetString("Flags"))
         };
     }
@@ -164,7 +165,7 @@ internal class SQL
         return string.IsNullOrEmpty(flagsStr) ? [] : flagsStr.Split(',');
     }
 
-    public void LogChat(long steamId, string content, bool say_team)
+    public void LogChat(string steamId, string content, bool say_team)
     {
         using var connection = new SqliteConnection(_connectionString);
         connection.Open();
@@ -178,6 +179,24 @@ internal class SQL
         cmd.Parameters.AddWithValue("$time", DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss"));
         cmd.Parameters.AddWithValue("$type", say_team ? 1 : 0);
         cmd.Parameters.AddWithValue("$content", content);
+
+        cmd.ExecuteNonQuery();
+    }
+
+    public void LogBan(string steamId, string operatorId, DateTime until)
+    {
+        using var connection = new SqliteConnection(_connectionString);
+        connection.Open();
+
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = @"
+            INSERT INTO ban_log (SteamID, Operator, Time, Until)
+            VALUES ($steamId, $operator, $time, $until);";
+
+        cmd.Parameters.AddWithValue("$steamId", steamId);
+        cmd.Parameters.AddWithValue("$operator", operatorId);
+        cmd.Parameters.AddWithValue("$time", DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss"));
+        cmd.Parameters.AddWithValue("$until", until.ToString("yyyy-MM-ddTHH:mm:ss"));
 
         cmd.ExecuteNonQuery();
     }

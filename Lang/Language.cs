@@ -19,7 +19,7 @@ internal class Language
         ClientCenter = 4
     }
 
-    internal static void ClientPrintf(Edict? client, MessageDestination msg_dest, PrintTarget target, string message)
+    private static void ClientPrintf(Edict? client, MessageDestination msg_dest, PrintTarget target, string message)
     {
         var msg = client == null ? new NetworkMessage(msg_dest, MessageTextMsg) : new NetworkMessage(msg_dest, MessageTextMsg, client);
             msg.WriteByte((byte)target)
@@ -33,9 +33,13 @@ internal class Language
             return lang;
         return code;
     }
-    internal static void Print(string code, PrintTarget target, Edict? client = null)
+    internal static void PrintWithLang(string code, PrintTarget target, Edict? client = null, params object?[] objs)
     {
-        string msg = GetTranlation(code);
+        string msg = string.Format(GetTranlation(code), objs);
+        Print(msg, target, client);
+    }
+    internal static void Print(string msg, PrintTarget target, Edict? client = null)
+    {
         switch (target)
         {
             case PrintTarget.Server: MetaMod.EngineFuncs.ServerPrint(msg); break;
@@ -44,19 +48,6 @@ internal class Language
                     if (client == null)
                         return;
                     ClientPrintf(client, MessageDestination.One, target, msg);
-                    break;
-                }
-        }
-    }
-    internal static void PrintAll(string code, PrintTarget target)
-    {
-        string msg = GetTranlation(code);
-        switch (target)
-        {
-            case PrintTarget.Server: MetaMod.EngineFuncs.ServerPrint(msg); break;
-            default:
-                {
-                    ClientPrintf(null, MessageDestination.Broadcast, target, msg);
                     break;
                 }
         }
