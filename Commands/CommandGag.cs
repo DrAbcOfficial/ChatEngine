@@ -26,11 +26,6 @@ internal class CommandGag(string n, string d, List<ArgumentsDescriptor>? argumen
         
         DateTime gaguntil = DateTime.UtcNow.AddMinutes(gagtime);
         info.GaggedUntil = gaguntil;
-        if (PlayerInfo.PlayerStorage.ContainsKey(steamid))
-        {
-            MetaMod.EngineFuncs.ServerCommand($"echo Player {info.NickName} has been gagged for {gagtime} minutes\n");
-            MetaMod.EngineFuncs.ServerExecute();
-        }
         string operatorId = "Server";
         if (player != null)
             operatorId = PlayerInfo.GetPlayerSteamID(player);

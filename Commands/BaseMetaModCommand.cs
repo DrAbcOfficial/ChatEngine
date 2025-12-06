@@ -102,12 +102,20 @@ internal abstract class BaseMetaModCommand
             new ArgumentsDescriptor("Time", "command.ban.bantime.description"),
             new ArgumentsDescriptor("Reason", "command.ban.reason.description", true),
         ]),
-        new CommandBan("removeban", "command.removeban.description", [
+        new CommandRemoveBan("removeban", "command.removeban.description", [
             new ArgumentsDescriptor("SteamID", "command.removeban.steamid.description")
         ]),
-        new CommandBan("kick", "command.kick.description", [
+        new CommandKick("kick", "command.kick.description", [
             new ArgumentsDescriptor("SteamID", "command.kick.steamid.description"),
             new ArgumentsDescriptor("Reason", "command.kick.reason.description", true),
+        ]),
+        new CommandGag("gag", "command.gag.description", [
+            new ArgumentsDescriptor("SteamID", "command.gag.steamid.description"),
+            new ArgumentsDescriptor("Time", "command.gag.gagtime.description"),
+            new ArgumentsDescriptor("Reason", "command.gag.reason.description", true),
+        ]),
+        new CommandRemoveGag("removegag", "command.removegag.description", [
+            new ArgumentsDescriptor("SteamID", "command.removegag.steamid.description")
         ]),
     ];
     internal static void RegisterCommands()

@@ -41,5 +41,12 @@ internal class LanguageConfig
         {"command.kick.description", "踢出一个玩家" },
         {"command.kick.steamid.description", "踢出对象的SteamID" },
         {"command.kick.reason.description", "踢出理由" },
+
+        {"command.gag.description", "禁言一个玩家" },
+        {"command.gag.steamid.description", "禁言对象的SteamID" },
+        {"command.gag.gagtime.description", "禁言时长（分钟），小于0为永久禁言" },
+        {"command.gag.reason.description", "禁言理由" },
+        {"command.removegag.description", "解除禁言一个玩家" },
+        {"command.removegag.steamid.description", "解除禁言对象的SteamID" },
     };
 }
