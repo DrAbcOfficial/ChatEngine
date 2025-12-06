@@ -6,6 +6,8 @@ using NuggetMod.Interface;
 using NuggetMod.Interface.Events;
 using NuggetMod.Wrapper.Metamod;
 using SQLitePCL;
+using System.Reflection;
+using System.Runtime.InteropServices;
 
 namespace ChatEngine;
 
@@ -39,13 +41,38 @@ public class Plugin : IPlugin
 
     public void MetaInit()
     {
-        Batteries.Init();
+        
     }
 
     public bool MetaQuery(InterfaceVersion interfaceVersion, MetaUtilFunctions pMetaUtilFuncs)
     {
         if (interfaceVersion != _pluginInfo.InterfaceVersion)
             return false;
+        static string GetNativeLibraryName()
+        {
+            if (OperatingSystem.IsWindows())
+                return "e_sqlite3.dll";
+            else if (OperatingSystem.IsLinux())
+                return "libe_sqlite3.so";
+            else if (OperatingSystem.IsMacOS())
+                return "libe_sqlite3.dylib";
+            else
+                throw new PlatformNotSupportedException();
+        }
+
+        string gamePath = pMetaUtilFuncs.GetGameInfo(GetGameInfoType.GameDirectory);
+        try
+        {
+            string libPath = Path.Combine(gamePath, "addons/chatengine/dlls/", GetNativeLibraryName());
+            NativeLibrary.Load(libPath);
+            Batteries.Init();
+        }
+        catch (Exception)
+        {
+            pMetaUtilFuncs.LogError("failed to load e_sqlite3.dll");
+            return false; 
+        }
+
         //Force load config
         var config = ConfigManager.Instance;
         SQLStorage.Initialize(config.Config.SQLStoragePath);
