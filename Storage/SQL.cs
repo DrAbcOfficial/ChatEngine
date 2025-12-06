@@ -37,6 +37,7 @@ internal class SQL
                 Id INTEGER PRIMARY KEY AUTOINCREMENT,
                 SteamID INTEGER NOT NULL,
                 Time TEXT NOT NULL,
+                Type INTEGER NOT NULL,
                 Content TEXT NOT NULL
             );");
 
@@ -160,21 +161,22 @@ internal class SQL
 
     private static string[] ParseFlags(string flagsStr)
     {
-        return string.IsNullOrEmpty(flagsStr) ? Array.Empty<string>() : flagsStr.Split(',');
+        return string.IsNullOrEmpty(flagsStr) ? [] : flagsStr.Split(',');
     }
 
-    public void LogChat(long steamId, string content)
+    public void LogChat(long steamId, string content, bool say_team)
     {
         using var connection = new SqliteConnection(_connectionString);
         connection.Open();
 
         using var cmd = connection.CreateCommand();
         cmd.CommandText = @"
-            INSERT INTO chat_log (SteamID, Time, Content)
-            VALUES ($steamId, $time, $content);";
+            INSERT INTO chat_log (SteamID, Time, Type, Content)
+            VALUES ($steamId, $time, $type, $content);";
 
         cmd.Parameters.AddWithValue("$steamId", steamId);
         cmd.Parameters.AddWithValue("$time", DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss"));
+        cmd.Parameters.AddWithValue("$type", say_team ? 1 : 0);
         cmd.Parameters.AddWithValue("$content", content);
 
         cmd.ExecuteNonQuery();

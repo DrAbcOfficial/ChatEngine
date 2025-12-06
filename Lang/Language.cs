@@ -9,6 +9,7 @@ namespace ChatEngine.Lang;
 internal class Language
 {
     internal static int MessageTextMsg = 0;
+    internal static int MessageSayText = 0;
     internal enum PrintTarget
     {
         Server = 0,
@@ -18,10 +19,10 @@ internal class Language
         ClientCenter = 4
     }
 
-    internal static void DoClientPrintf(Edict client, MessageDestination msg_dest, PrintTarget target, string message)
+    internal static void ClientPrintf(Edict? client, MessageDestination msg_dest, PrintTarget target, string message)
     {
-        new NetworkMessage(msg_dest, MessageTextMsg, client)
-            .WriteByte((byte)target)
+        var msg = client == null ? new NetworkMessage(msg_dest, MessageTextMsg) : new NetworkMessage(msg_dest, MessageTextMsg, client);
+            msg.WriteByte((byte)target)
             .WriteString($"{message}\n")
             .Send();
     }
@@ -42,10 +43,32 @@ internal class Language
                 {
                     if (client == null)
                         return;
-                    DoClientPrintf(client, MessageDestination.One, target, msg);
+                    ClientPrintf(client, MessageDestination.One, target, msg);
                     break;
                 }
         }
+    }
+    internal static void PrintAll(string code, PrintTarget target)
+    {
+        string msg = GetTranlation(code);
+        switch (target)
+        {
+            case PrintTarget.Server: MetaMod.EngineFuncs.ServerPrint(msg); break;
+            default:
+                {
+                    ClientPrintf(null, MessageDestination.Broadcast, target, msg);
+                    break;
+                }
+        }
+    }
+
+    internal static void SayText(string message, MessageDestination msg_dest, Edict player, Edict? client)
+    {
+        var msg = client == null ? new NetworkMessage(msg_dest, MessageSayText) : new NetworkMessage(msg_dest, MessageSayText, client);
+        msg.WriteByte((byte)MetaMod.EngineFuncs.IndexOfEdict(player))
+            .WriteByte(2)
+            .WriteString(message)
+            .Send();
     }
 }
 

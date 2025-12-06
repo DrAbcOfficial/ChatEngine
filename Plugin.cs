@@ -1,12 +1,14 @@
 ﻿using ChatEngine.Commands;
 using ChatEngine.Lang;
 using ChatEngine.Storage;
+using NuggetMod.Enum.Common;
+using NuggetMod.Enum.Engine;
 using NuggetMod.Enum.Metamod;
+using NuggetMod.Helper;
 using NuggetMod.Interface;
 using NuggetMod.Interface.Events;
 using NuggetMod.Wrapper.Metamod;
 using SQLitePCL;
-using System.Reflection;
 using System.Runtime.InteropServices;
 
 namespace ChatEngine;
@@ -41,7 +43,7 @@ public class Plugin : IPlugin
 
     public void MetaInit()
     {
-        
+
     }
 
     public bool MetaQuery(InterfaceVersion interfaceVersion, MetaUtilFunctions pMetaUtilFuncs)
@@ -70,7 +72,7 @@ public class Plugin : IPlugin
         catch (Exception)
         {
             pMetaUtilFuncs.LogError("failed to load e_sqlite3.dll");
-            return false; 
+            return false;
         }
 
         //Force load config
@@ -95,8 +97,12 @@ public class Plugin : IPlugin
                 args.Add(MetaMod.EngineFuncs.Cmd_Argv(i));
             }
             bool from_chat = false;
+            string msg = MetaMod.EngineFuncs.Cmd_Args();
+            bool is_teamchat = false;
             if (args[0] == "say" || args[0] == "say_team")
             {
+                is_teamchat = args[0] == "say_team";
+                PlayerInfo.InsterNewChatLog(player, msg, is_teamchat);
                 from_chat = true;
                 args = [.. args.Skip(1)];
             }
@@ -109,7 +115,23 @@ public class Plugin : IPlugin
                     if (ConfigManager.Instance.Config.ChatTrigger.Contains(trigger))
                         name = name[1..];
                     else
-                        return MetaResult.Ignored;
+                    {
+                        string trimmed = msg.Trim().Trim('"');
+                        string content = $"{(player.EntVars.DeadFlag != DeadFlag.No ? Language.GetTranlation("chat.tag.dead") : "")}" +
+                            $"{(is_teamchat ? Language.GetTranlation("chat.tag.team") : "")} {player.EntVars.NetName}: {trimmed}";
+                        //重新打印一次，防止傻逼非asiic检查
+                        if (!is_teamchat)
+                            Language.SayText(content, MessageDestination.Broadcast, player, null);
+                        else
+                        {
+                            Utility.GetAllPlayers().ForEach(p =>
+                            {
+                                if (p.EntVars.Team == player.EntVars.Team)
+                                    Language.SayText(content, MessageDestination.One, player, p);
+                            });
+                        }
+                        return MetaResult.SuperCEDE;
+                    }
                 }
                 if (name.StartsWith(CMD_PREFIX))
                 {
@@ -143,10 +165,18 @@ public class Plugin : IPlugin
         EngineEvents engineEvents = new();
         engineEvents.RegUserMsg += (pszName, iSize) =>
         {
-            if (pszName == "TextMsg")
+            switch (pszName)
             {
-                Language.MessageTextMsg = MetaMod.MetaGlobals.GetOriginalReturn<int>();
-                return (MetaResult.Handled, 0);
+                case "TextMsg":
+                    {
+                        Language.MessageTextMsg = MetaMod.MetaGlobals.GetOriginalReturn<int>();
+                        return (MetaResult.Handled, 0);
+                    }
+                case "SayText":
+                    {
+                        Language.MessageSayText = MetaMod.MetaGlobals.GetOriginalReturn<int>();
+                        return (MetaResult.Handled, 0);
+                    }
             }
             return (MetaResult.Ignored, 0);
         };

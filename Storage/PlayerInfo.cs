@@ -1,5 +1,6 @@
 ﻿using NuggetMod.Interface;
 using NuggetMod.Wrapper.Engine;
+using System.Collections.Concurrent;
 
 namespace ChatEngine.Storage
 {
@@ -13,14 +14,14 @@ namespace ChatEngine.Storage
         internal bool Admin;
         internal string[] Flags = [];
 
-        internal static Dictionary<long, PlayerInfo> PlayerStorage = [];
+        internal static ConcurrentDictionary<long, PlayerInfo> PlayerStorage = [];
 
         internal static long GetPlayerSteamID(Edict player)
         {
             string steamid = MetaMod.EngineFuncs.GetPhysicsKeyValue(player, "*sid");
             if (string.IsNullOrWhiteSpace(steamid))
                 return 0;
-            if(long.TryParse(steamid, out long id))
+            if (long.TryParse(steamid, out long id))
                 return id;
             return 0;
         }
@@ -31,26 +32,39 @@ namespace ChatEngine.Storage
             DateTime now = DateTime.UtcNow;
             if (info.BannedUntil.HasValue && info.BannedUntil.Value > now)
                 return (false, info);
-            PlayerStorage.Add(steamid, info);
+            PlayerStorage[steamid] = info;
             return (true, info);
         }
-        internal static void PlayerDisconnected(Edict player)
+        internal static Task PlayerDisconnected(Edict player)
         {
             long steamid = GetPlayerSteamID(player);
-            if(PlayerStorage.TryGetValue(steamid, out PlayerInfo? info))
+            return Task.Factory.StartNew(() =>
             {
-                Plugin.SQLStorage.UpsertPlayerInfo(info);
-                PlayerStorage.Remove(steamid);
-            }
+                if (PlayerStorage.TryRemove(steamid, out var info))
+                {
+                    Plugin.SQLStorage.UpsertPlayerInfo(info);
+                }
+            });
         }
 
         internal static PlayerInfo? GetPlayerInfo(Edict player)
         {
             var steamid = GetPlayerSteamID(player);
-            if (PlayerStorage.TryGetValue(steamid, out PlayerInfo? info))
-                return info;
-            else
-                return null;
+            return PlayerStorage.TryGetValue(steamid, out var info) ? info : null;
+        }
+
+        internal static void InsterNewChatLog(Edict player, string msg, bool say_team)
+        {
+            PlayerInfo? info = GetPlayerInfo(player);
+            if (info != null)
+            {
+                Interlocked.Increment(ref info.TalkedCount);
+                Task.Factory.StartNew(() =>
+                {
+                    Plugin.SQLStorage.LogChat(info.SteamID, msg, say_team);
+                    Plugin.SQLStorage.UpsertPlayerInfo(info);
+                });
+            }
         }
     }
 }

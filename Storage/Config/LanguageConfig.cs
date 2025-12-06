@@ -15,6 +15,9 @@ internal class LanguageConfig
         {"player.leaved", "玩家: {0} 已经退出游戏，信息如下\nIP: {1}\nSteamID: {2}" },
         {"player.banned.connect", "你已被服务器封禁，解封时间: {0}" },
 
+        {"chat.tag.team", "(团队)" },
+        {"chat.tag.dead", "*死亡*" },
+
         {"command.forbidden", "你没有使用该命令的权限，至少需要[{0}]的权限"},
         {"command.registed", "客户端命令：{0} 已经成功注册" },
         {"command.exec.success", "成功执行客户端命令：{0}" },
