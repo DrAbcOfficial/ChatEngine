@@ -43,6 +43,11 @@ internal class ConfigManager
     }
     public void SaveConfig()
     {
+        string? dir = Path.GetDirectoryName(CONFIG_FILE);
+        if (!Directory.Exists(dir) && dir != null)
+            Directory.CreateDirectory(dir);
+        if (!File.Exists(CONFIG_FILE))
+            File.Create(CONFIG_FILE);
         string json = JsonSerializer.Serialize(Config, ConfigContext.Default.Root);
         File.WriteAllText(CONFIG_FILE, json);
     }

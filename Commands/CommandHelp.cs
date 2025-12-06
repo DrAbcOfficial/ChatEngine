@@ -15,10 +15,11 @@ internal class CommandHelp(string n, string d) : BaseMetaModCommand(n, d, null)
 
     protected override bool Excute(List<MetaModArgument> arguments, Language.PrintTarget printTarget, Edict? player = null)
     {
-        string a = ProcessField("Command", 12);
-        string b = ProcessField("Description", 18);
-        string c = ProcessField("Arguments", 24);
-        string d = ProcessField("Admin", 3);
+        Language.Print("command.help", printTarget, player);
+        string a = ProcessField(Language.GetTranlation("command.help.command"), 12);
+        string b = ProcessField(Language.GetTranlation("command.help.description"), 18);
+        string c = ProcessField(Language.GetTranlation("command.help.arguments"), 24);
+        string d = ProcessField(Language.GetTranlation("command.help.admin"), 3);
         Language.Print($"{a}{b}{c}{d}", printTarget, player);
         foreach (var cmds in Commands)
         {
@@ -30,7 +31,7 @@ internal class CommandHelp(string n, string d) : BaseMetaModCommand(n, d, null)
                 desc2Part += $"<{arg.Name}:{arg.Type}>";
             }
             desc2Part = ProcessField(desc2Part, 24);
-            string desc3Part = ProcessField(cmds.Value.Admin ? "Yes" : "No", 3);
+            string desc3Part = ProcessField(Language.GetTranlation(cmds.Value.Admin ? "yes" : "no"), 3);
             Language.Print($"{namePart}{desc1Part}{desc2Part}{desc3Part}", printTarget, player);
         }
         return true;
