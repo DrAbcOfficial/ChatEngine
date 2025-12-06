@@ -17,7 +17,7 @@ internal abstract class BaseMetaModCommand
     internal List<ArgumentsDescriptor> Arguments => _arguments;
     internal bool Admin => _admin;
 
-    protected BaseMetaModCommand(string name, string description, List<ArgumentsDescriptor>? arguments = null)
+    protected BaseMetaModCommand(string name, string description, List<ArgumentsDescriptor>? arguments = null, bool admin = false)
     {
         _name = name;
         _description = description;
@@ -25,6 +25,7 @@ internal abstract class BaseMetaModCommand
             _arguments = [.. arguments];
         else
             _arguments = [];
+        _admin = admin;
     }
     private void ServerPreExcute()
     {
@@ -72,7 +73,7 @@ internal abstract class BaseMetaModCommand
             return false;
         if (Admin && !playerinfo.Admin)
         {
-            Language.Print("cmd_access_denied", target, player);
+            Language.Print("command.forbidden", target, player);
             return false;
         }
         List<MetaModArgument> arguments = [];
@@ -97,7 +98,7 @@ internal abstract class BaseMetaModCommand
 
         if (arguments.Count < required)
         {
-            Language.Print("args_mismatched", target, player);
+            Language.Print("command.exec.failed", target, player);
             return false;
         }
         int max = Math.Max(arguments.Count, _arguments.Count);
@@ -105,7 +106,7 @@ internal abstract class BaseMetaModCommand
         {
             if (arguments[i].Type != _arguments[i].Type)
             {
-                Language.Print("args_mismatched", target, player);
+                Language.Print("command.exec.failed", target, player);
                 return false;
             }
         }
@@ -121,10 +122,11 @@ internal abstract class BaseMetaModCommand
     ];
     internal static void RegisterCommands()
     {
+        string prefix = ConfigManager.Instance.Config.CommandPrefix;
         foreach (var command in _register)
         {
             Commands.Add(command.Name, command);
-            MetaMod.EngineFuncs.AddServerCommand($"{Plugin.CMD_PREFIX}{command.Name}", command.ServerPreExcute);
+            MetaMod.EngineFuncs.AddServerCommand($"{prefix}{command.Name}", command.ServerPreExcute);
         }
     }
 }
