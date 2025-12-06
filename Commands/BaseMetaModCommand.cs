@@ -104,7 +104,11 @@ internal abstract class BaseMetaModCommand
         ]),
         new CommandBan("removeban", "command.removeban.description", [
             new ArgumentsDescriptor("SteamID", "command.removeban.steamid.description")
-        ])
+        ]),
+        new CommandBan("kick", "command.kick.description", [
+            new ArgumentsDescriptor("SteamID", "command.kick.steamid.description"),
+            new ArgumentsDescriptor("Reason", "command.kick.reason.description", true),
+        ]),
     ];
     internal static void RegisterCommands()
     {

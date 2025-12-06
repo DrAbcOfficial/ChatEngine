@@ -31,10 +31,14 @@ internal class LanguageConfig
         {"command.help.cmd_description", "获取所有命令帮助" },
 
         {"command.ban.description", "封禁一个玩家" },
-        {"command.ban.steamid.description", "封禁对象的SteamID（64位ID）" },
+        {"command.ban.steamid.description", "封禁对象的SteamID" },
         {"command.ban.bantime.description", "封禁时长（分钟），小于0为永久封禁" },
         {"command.ban.reason.description", "封禁理由" },
         {"command.removeban.description", "解封一个玩家" },
-        {"command.removeban.steamid.description", "解封对象的SteamID（64位ID）" },
+        {"command.removeban.steamid.description", "解封对象的SteamID" },
+
+        {"command.kick.description", "踢出一个玩家" },
+        {"command.kick.steamid.description", "踢出对象的SteamID" },
+        {"command.kick.reason.description", "踢出理由" },
     };
 }

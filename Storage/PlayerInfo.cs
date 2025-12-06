@@ -10,7 +10,7 @@ namespace ChatEngine.Storage
         internal string SteamID = "Invalid";
         internal string NickName = "Unknown";
         internal DateTime? BannedUntil;
-        internal DateTime? GargedUntil;
+        internal DateTime? GaggedUntil;
         internal long TalkedCount;
         internal Admin Admin;
         internal string[] Flags = [];

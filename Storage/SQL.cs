@@ -27,7 +27,7 @@ internal class SQL
                 SteamID TEXT PRIMARY KEY,
                 NickName TEXT NOT NULL,
                 Banned TEXT,
-                Garged TEXT,
+                Gagged TEXT,
                 Talked INTEGER NOT NULL DEFAULT 0,
                 Admin INTEGER NOT NULL DEFAULT 0,
                 Flags TEXT NOT NULL DEFAULT ''
@@ -35,7 +35,6 @@ internal class SQL
 
         ExecuteNonQuery(connection, transaction, @"
             CREATE TABLE IF NOT EXISTS chat_log (
-                Id INTEGER PRIMARY KEY AUTOINCREMENT,
                 SteamID TEXT NOT NULL,
                 Time TEXT NOT NULL,
                 Type INTEGER NOT NULL,
@@ -44,7 +43,6 @@ internal class SQL
 
         ExecuteNonQuery(connection, transaction, @"
             CREATE TABLE IF NOT EXISTS ban_log (
-                Id INTEGER PRIMARY KEY AUTOINCREMENT,
                 SteamID TEXT NOT NULL,
                 Operator INTEGER,
                 Time TEXT NOT NULL,
@@ -52,8 +50,7 @@ internal class SQL
             );");
 
         ExecuteNonQuery(connection, transaction, @"
-            CREATE TABLE IF NOT EXISTS garg_log (
-                Id INTEGER PRIMARY KEY AUTOINCREMENT,
+            CREATE TABLE IF NOT EXISTS gag_log (
                 SteamID TEXT NOT NULL,
                 Operator INTEGER,
                 Time TEXT NOT NULL,
@@ -62,7 +59,6 @@ internal class SQL
 
         ExecuteNonQuery(connection, transaction, @"
             CREATE TABLE IF NOT EXISTS detected_log (
-                Id INTEGER PRIMARY KEY AUTOINCREMENT,
                 SteamID TEXT NOT NULL,
                 Time TEXT NOT NULL,
                 Content TEXT NOT NULL,
@@ -91,12 +87,12 @@ internal class SQL
 
         using var cmd = connection.CreateCommand();
         cmd.CommandText = @"
-            INSERT INTO player_info (SteamID, NickName, Banned, Garged, Talked, Admin, Flags)
-            VALUES ($steamId, $nickName, $banned, $garged, $talked, $admin, $flags)
+            INSERT INTO player_info (SteamID, NickName, Banned, Gagged, Talked, Admin, Flags)
+            VALUES ($steamId, $nickName, $banned, $gagged, $talked, $admin, $flags)
             ON CONFLICT(SteamID) DO UPDATE SET
                 NickName = excluded.NickName,
                 Banned = excluded.Banned,
-                Garged = excluded.Garged,
+                Gagged = excluded.Gagged,
                 Talked = excluded.Talked,
                 Admin = excluded.Admin,
                 Flags = excluded.Flags;";
@@ -104,7 +100,7 @@ internal class SQL
         cmd.Parameters.AddWithValue("$steamId", player.SteamID);
         cmd.Parameters.AddWithValue("$nickName", player.NickName);
         cmd.Parameters.AddWithValue("$banned", player.BannedUntil?.ToString("yyyy-MM-ddTHH:mm:ss") ?? (object)DBNull.Value);
-        cmd.Parameters.AddWithValue("$garged", player.GargedUntil?.ToString("yyyy-MM-ddTHH:mm:ss") ?? (object)DBNull.Value);
+        cmd.Parameters.AddWithValue("$gagged", player.GaggedUntil?.ToString("yyyy-MM-ddTHH:mm:ss") ?? (object)DBNull.Value);
         cmd.Parameters.AddWithValue("$talked", player.TalkedCount);
         cmd.Parameters.AddWithValue("$admin", (int)player.Admin);
         cmd.Parameters.AddWithValue("$flags", string.Join(",", player.Flags));
@@ -122,7 +118,7 @@ internal class SQL
             SteamID = steamId,
             NickName = initialNickName,
             BannedUntil = null,
-            GargedUntil = null,
+            GaggedUntil = null,
             TalkedCount = 0,
             Admin = Admin.Player,
             Flags = []
@@ -136,7 +132,7 @@ internal class SQL
         connection.Open();
 
         using var cmd = connection.CreateCommand();
-        cmd.CommandText = "SELECT NickName, Banned, Garged, Talked, Admin, Flags FROM player_info WHERE SteamID = $steamId;";
+        cmd.CommandText = "SELECT NickName, Banned, Gagged, Talked, Admin, Flags FROM player_info WHERE SteamID = $steamId;";
         cmd.Parameters.AddWithValue("$steamId", steamId);
 
         using var reader = cmd.ExecuteReader();
@@ -148,7 +144,7 @@ internal class SQL
             SteamID = steamId,
             NickName = reader.GetString("NickName"),
             BannedUntil = ParseDateTime(reader, "Banned"),
-            GargedUntil = ParseDateTime(reader, "Garged"),
+            GaggedUntil = ParseDateTime(reader, "Gagged"),
             TalkedCount = reader.GetInt64("Talked"),
             Admin = (Admin)reader.GetInt32("Admin"),
             Flags = ParseFlags(reader.GetString("Flags"))
