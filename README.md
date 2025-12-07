@@ -225,7 +225,7 @@ dotnet publish -c Release -r win-x86 -o ./build -p:PublishAot=true
 
 ## Credits
 
-- Built with [NuggetMod](https://github.com/DrAbcrealone/NuggetMod) framework
+- Built with [NuggetMod](https://github.com/DrAbcOfficial/NuggetMod) framework
 - Uses SQLitePCL for database operations
 ---
 
