@@ -1,4 +1,5 @@
-﻿using ChatEngine.Commands;
+﻿using ChatEngine.Censor;
+using ChatEngine.Commands;
 using ChatEngine.Lang;
 using ChatEngine.Storage;
 using NuggetMod.Enum.Common;
@@ -76,6 +77,8 @@ public class Plugin : IPlugin
 
         //Force load config
         var config = ConfigManager.Instance;
+        //Dictionary Initialize
+        StringChecker.BuildDFA(gamePath);
         SQLStorage.Initialize(config.Config.SQLStoragePath);
         return true;
     }
@@ -117,17 +120,33 @@ public class Plugin : IPlugin
                     else
                     {
                         PlayerInfo? info = PlayerInfo.GetPlayerInfo(player);
-                        if(info == null)
+                        if (info == null)
                         {
                             Language.PrintWithLang("player.info.lost", printTarget);
                             return MetaResult.SuperCEDE;
                         }
-                        if(info.GaggedUntil.HasValue && DateTime.UtcNow <= info.GaggedUntil.Value)
+                        if (info.GaggedUntil.HasValue && DateTime.UtcNow <= info.GaggedUntil.Value)
                         {
                             Language.PrintWithLang("player.gagged", printTarget, player, (info.GaggedUntil.Value - DateTime.UtcNow).TotalMinutes);
                             return MetaResult.SuperCEDE;
                         }
                         string trimmed = msg.Trim().Trim('"');
+                        //词语检查
+                        (bool iscensored, var checkResult) = StringChecker.IsIlegalString(trimmed);
+                        if (iscensored)
+                        {
+                            string detected = string.Empty;
+                            if (checkResult != null)
+                            {
+                                foreach (var arg in checkResult)
+                                {
+                                    detected += $"{arg.Matched}/";
+                                }
+                            }
+                            PlayerInfo.IncreseCensorCount(player, trimmed, detected);
+                            var nicewd = ConfigManager.Instance.Config.Censor.NiceWords;
+                            trimmed = nicewd[MetaMod.EngineFuncs.RandomLong(0, nicewd.Count - 1)];
+                        }
                         string content = $"{(player.EntVars.DeadFlag != DeadFlag.No ? Language.GetTranlation("chat.tag.dead") : "")}" +
                             $"{(is_teamchat ? Language.GetTranlation("chat.tag.team") : "")} {player.EntVars.NetName}: {trimmed}";
                         //重新打印一次，防止傻逼非asiic检查
@@ -154,7 +173,7 @@ public class Plugin : IPlugin
                         Language.PrintWithLang(result ? "command.exec.success" : "command.exec.failed",
                             printTarget,
                             player, instance.Name);
-                        if(!result)
+                        if (!result)
                         {
                             string desc = $"{ConfigManager.Instance.Config.CommandPrefix}{instance.Name} ";
                             foreach (var arg in instance.Arguments)
@@ -171,6 +190,23 @@ public class Plugin : IPlugin
         };
         dLLEvents.ClientConnect += (player, pszName, pszAddress, ref szRejectReason) =>
         {
+            string steamid = PlayerInfo.GetPlayerSteamID(player);
+            //检查用户名
+            var check = StringChecker.Check(pszName);
+            if (check.Length > 0)
+            {
+                szRejectReason = Language.GetTranlation("player.shitname");
+                string detected = string.Empty;
+                foreach (var arg in check)
+                {
+                    detected += $"{arg.Matched}/";
+                }
+                Task.Factory.StartNew(() =>
+                {
+                    SQLStorage.LogDetected(steamid, 1, pszName, $"{detected}");
+                });
+                return (MetaResult.SuperCEDE, false);
+            }
             var result = PlayerInfo.PlayerConnected(player, pszName, pszAddress);
             if (!result.Item1)
             {
@@ -183,6 +219,11 @@ public class Plugin : IPlugin
         dLLEvents.ClientDisconnect += player =>
         {
             PlayerInfo.PlayerDisconnected(player);
+            return MetaResult.Handled;
+        };
+        dLLEvents.ServerActivate += (pEdictList, edictCount, clientMax) =>
+        {
+            PlayerInfo.ClearAllDetected();
             return MetaResult.Handled;
         };
         EngineEvents engineEvents = new();

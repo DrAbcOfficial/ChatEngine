@@ -3,6 +3,7 @@ using ChatEngine.Lang;
 using NuggetMod.Interface;
 using NuggetMod.Wrapper.Engine;
 using System.Collections.Concurrent;
+using System.Numerics;
 
 namespace ChatEngine.Storage
 {
@@ -16,6 +17,8 @@ namespace ChatEngine.Storage
         internal Admin Admin;
         internal string IP = "";
         internal string[] Flags = [];
+
+        private int CensorCount = 0;
 
         internal static ConcurrentDictionary<string, PlayerInfo> PlayerStorage = [];
 
@@ -78,6 +81,66 @@ namespace ChatEngine.Storage
                     Plugin.SQLStorage.LogChat(info.SteamID, msg, say_team);
                     Plugin.SQLStorage.UpsertPlayerInfo(info);
                 });
+            }
+        }
+
+        internal static void Kick(Edict player, string reason)
+        {
+            Kick(GetPlayerSteamID(player), reason);
+        }
+
+        internal static void Kick(string steamid, string reason)
+        {
+            MetaMod.EngineFuncs.ServerCommand($"kick #{steamid} \"{reason}\"\n");
+            MetaMod.EngineFuncs.ServerExecute();
+        }
+
+
+        internal static void Ban(Edict player, string operatorId, int bantime, string reason)
+        {
+            PlayerInfo? info = GetPlayerInfo(player);
+            if (info == null)
+                return;
+            Ban(info, operatorId, bantime, reason);
+        }
+        internal static void Ban(PlayerInfo info, string operatorId, int bantime, string reason)
+        {
+            DateTime banuntil = DateTime.UtcNow.AddMinutes(bantime);
+            info.BannedUntil = banuntil;
+            string steamid = info.SteamID;
+            Kick(steamid, (string.IsNullOrEmpty(reason) ?
+                string.Format(Language.GetTranlation("player.banned"), bantime) : reason));
+            Task.Factory.StartNew(() =>
+            {
+                Plugin.SQLStorage.UpsertPlayerInfo(info);
+                Plugin.SQLStorage.LogBan(steamid, operatorId, banuntil);
+            });
+        }
+        internal static void IncreseCensorCount(Edict player, string raw, string detected)
+        {
+            PlayerInfo? info = GetPlayerInfo(player);
+            if (info == null)
+                return;
+            info.TalkedCount++;
+            Task.Factory.StartNew(() =>
+            {
+                Plugin.SQLStorage.LogDetected(info.SteamID, 0, raw, detected);
+            });
+            if(info.TalkedCount >= ConfigManager.Instance.Config.Censor.MaxLimitPerGame)
+            {
+                int bantime = ConfigManager.Instance.Config.Censor.BanDurationMinutes;
+                string reason = string.Format(Language.GetTranlation("player.banned"), bantime);
+                Ban(player, "*DETECTED*", bantime, reason);
+                return;
+            }
+            if(info.TalkedCount >= ConfigManager.Instance.Config.Censor.WarnLimitPerGame)
+                Language.PrintWithLang("player.banwarn", Language.PrintTarget.ClientChat, player, $"{info.TalkedCount}/{ConfigManager.Instance.Config.Censor.MaxLimitPerGame}");
+        }
+        internal static void ClearAllDetected()
+        {
+            foreach(var p in PlayerStorage)
+            {
+                p.Value.CensorCount = 0;
             }
         }
     }

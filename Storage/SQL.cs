@@ -62,6 +62,7 @@ internal class SQL
             CREATE TABLE IF NOT EXISTS detected_log (
                 SteamID TEXT NOT NULL,
                 Time TEXT NOT NULL,
+                Type INTEGER NOT NULL,
                 Content TEXT NOT NULL,
                 Detected TEXT NOT NULL
             );");
@@ -216,6 +217,25 @@ internal class SQL
         cmd.Parameters.AddWithValue("$operator", operatorId);
         cmd.Parameters.AddWithValue("$time", DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss"));
         cmd.Parameters.AddWithValue("$until", until.ToString("yyyy-MM-ddTHH:mm:ss"));
+
+        cmd.ExecuteNonQuery();
+    }
+
+    public void LogDetected(string steamId, int type, string content, string detected)
+    {
+        using var connection = new SqliteConnection(_connectionString);
+        connection.Open();
+
+        using var cmd = connection.CreateCommand();
+        cmd.CommandText = @"
+            INSERT INTO detected_log (SteamID, Time, Type, Content, Detected)
+            VALUES ($steamId, $time, $type, $content, $detected);";
+
+        cmd.Parameters.AddWithValue("$steamId", steamId);
+        cmd.Parameters.AddWithValue("$time", DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ss"));
+        cmd.Parameters.AddWithValue("$type", type);
+        cmd.Parameters.AddWithValue("$content", content);
+        cmd.Parameters.AddWithValue("$detected", detected);
 
         cmd.ExecuteNonQuery();
     }

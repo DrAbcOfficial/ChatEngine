@@ -8,6 +8,7 @@ internal class LanguageConfig
         {"no", "否" },
         {"plugin.reloaded", "Chat插件已被重新加载，插件将暂时停用" },
         {"plugin.loaded", "Chat插件已成功加载" },
+        {"player.shitname", "你的用户名不受欢迎，请换一个" },
         {"player.kicked", "你已被服务器踢出，请文明游戏" },
         {"player.banned", "你已被服务器封禁{0}分钟，请文明游戏" },
         {"player.gagged", "你已被服务器禁言{0}分钟，请文明游戏" },

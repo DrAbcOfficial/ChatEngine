@@ -7,7 +7,7 @@ using System.Text.Json.Serialization;
 namespace ChatEngine.Storage;
 
 [JsonSerializable(typeof(Root))]
-[JsonSerializable(typeof(Censor))]
+[JsonSerializable(typeof(Config.Censor))]
 [JsonSerializable(typeof(LanguageConfig))]
 [JsonSerializable(typeof(List<string>))]
 [JsonSerializable(typeof(Dictionary<string, string>))]
@@ -20,7 +20,20 @@ internal partial class ConfigContext : JsonSerializerContext { }
 internal class ConfigManager
 {
     private const string CONFIG_FILE = "addons/chatengine/config.json";
+    private HashSet<char>? _ignoreCharSet;
+
     private static ConfigManager? _instance;
+
+    public HashSet<char> IgnoreCharSet
+    {
+        get
+        {
+            _ignoreCharSet ??= [.. Config.Censor.IgnoreCharacters
+                .Where(s => !string.IsNullOrEmpty(s) && s.Length == 1)
+                .Select(s => s[0])];
+            return _ignoreCharSet;
+        }
+    }
     public static ConfigManager Instance
     {
         get

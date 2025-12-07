@@ -1,6 +1,5 @@
 ﻿using ChatEngine.Lang;
 using ChatEngine.Storage;
-using NuggetMod.Interface;
 using NuggetMod.Wrapper.Engine;
 
 namespace ChatEngine.Commands;
@@ -15,8 +14,7 @@ internal class CommandKick(string n, string d, List<ArgumentsDescriptor>? argume
         string reason = string.Empty;
         if (arguments.Count > 1)
             reason = arguments[1];
-        MetaMod.EngineFuncs.ServerCommand($"kick #{steamid} \"{(string.IsNullOrEmpty(reason) ? Language.GetTranlation("player.kicked") : reason)}\"\n");
-        MetaMod.EngineFuncs.ServerExecute();
+        PlayerInfo.Kick(steamid, (string.IsNullOrEmpty(reason) ? Language.GetTranlation("player.kicked") : reason));
         return true;
     }
 }
