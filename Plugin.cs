@@ -8,6 +8,7 @@ using NuggetMod.Enum.Metamod;
 using NuggetMod.Helper;
 using NuggetMod.Interface;
 using NuggetMod.Interface.Events;
+using NuggetMod.Wrapper.Engine;
 using NuggetMod.Wrapper.Metamod;
 using SQLitePCL;
 using System.Runtime.InteropServices;
@@ -222,6 +223,27 @@ public class Plugin : IPlugin
         {
             PlayerInfo.ClearAllDetected();
             return MetaResult.Handled;
+        };
+        dLLEvents.ClientUserInfoChanged += (pEntity, ref infobuffer) =>
+        {
+            string name = MetaMod.EngineFuncs.InfoKeyValue(infobuffer, "name");
+            var check = StringChecker.Check(name);
+            if (check.Length > 0)
+            {
+                string steamid = PlayerInfo.GetPlayerSteamID(pEntity);
+                PlayerInfo.Kick(steamid, Language.GetTranlation("player.shitname"));
+                string detected = string.Empty;
+                foreach (var arg in check)
+                {
+                    detected += $"{arg.Matched}/";
+                }
+                Task.Factory.StartNew(() =>
+                {
+                    SQLStorage.LogDetected(steamid, 1, name, $"{detected}");
+                });
+                return MetaResult.SuperCEDE;
+            }
+            return MetaResult.Ignored;
         };
         EngineEvents engineEvents = new();
         engineEvents.RegUserMsg += (pszName, iSize) =>

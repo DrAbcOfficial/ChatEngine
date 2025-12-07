@@ -21,14 +21,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="DrAbc.NuggetMod" Version="0.0.4" />
     <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="10.0.0" />
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.2" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Reference Include="NuggetMod">
-      <HintPath>..\NuggetMod\NuggetMod\bin\Debug\net8.0\NuggetMod.dll</HintPath>
-    </Reference>
   </ItemGroup>
 
   <ItemGroup>
