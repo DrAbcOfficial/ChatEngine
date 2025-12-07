@@ -10,7 +10,7 @@ internal static class StringChecker
     internal static void BuildDFA(string gamePath)
     {
         (RootDFA, uint count, uint terminals) = DFANode.CreateFromFile(Path.Combine(gamePath, ConfigManager.Instance.Config.Censor.CensorWordsFilePath));
-        MetaMod.EngineFuncs.ServerPrint($"ChatEngine Loaded {count} DFA nodes, {terminals} DFA terminals");
+        MetaMod.EngineFuncs.ServerPrint($"ChatEngine Loaded {count} DFA nodes, {terminals} DFA terminals\n");
     }
     internal static DFANode.CheckResult[] Check(string str)
     {
