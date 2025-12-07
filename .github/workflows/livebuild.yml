@@ -1,0 +1,35 @@
+name: Build
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+    
+jobs:  
+  build:
+    strategy:
+      matrix:
+        # no linux-x86 here 🤷
+        runtime: [win-x64, win-x86, linux-x64]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup dotnet
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Publish
+        run: dotnet publish -c Release -r ${{ matrix.runtime }} -p:PublishAot=true -o "${{github.workspace}}/package/dlls"
+
+      - name: Touch
+        run: echo -n "fuck" > ${{github.workspace}}/package/censor_words.dic
+      
+      - name: Upload
+        uses: actions/upload-artifact@v4
+        with:
+          name: ChatEngine
+          path: |
+            ${{github.workspace}}/package/
