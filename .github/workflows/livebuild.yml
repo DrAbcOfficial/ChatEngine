@@ -10,9 +10,14 @@ jobs:
   build:
     strategy:
       matrix:
-        # no linux-x86 here 🤷
-        runtime: [win-x64, win-x86, linux-x64]
-    runs-on: ubuntu-latest
+        include:
+          - os: windows-latest
+            runtime: win-x64
+          - os: windows-latest
+            runtime: win-x86
+          - os: ubuntu-latest
+            runtime: linux-x64
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
 
@@ -24,12 +29,12 @@ jobs:
       - name: Publish
         run: dotnet publish -c Release -r ${{ matrix.runtime }} -p:PublishAot=true -o "${{github.workspace}}/package/dlls"
 
-      - name: Touch
-        run: echo -n "fuck" > ${{github.workspace}}/package/censor_words.dic
+      - name: Create censor words file
+        run: echo "fuck" > ${{github.workspace}}/package/censor_words.dic
       
       - name: Upload
         uses: actions/upload-artifact@v4
         with:
-          name: ChatEngine
+          name: ChatEngine-${{ matrix.runtime }}
           path: |
             ${{github.workspace}}/package/
