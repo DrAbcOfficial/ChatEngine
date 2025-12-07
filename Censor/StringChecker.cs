@@ -18,13 +18,4 @@ internal static class StringChecker
             throw new NullReferenceException("Root DFA is NULL");
         return RootDFA.CheckString(str);
     }
-    internal static (bool, DFANode.CheckResult[]?) IsIlegalString(string str)
-    {
-        if (RootDFA == null)
-            throw new NullReferenceException("Root DFA is NULL");
-        var result = RootDFA.CheckString(str);
-        if (result.Length > ConfigManager.Instance.Config.Censor.MaxLimitPerChat)
-            return (false, result);
-        return (true, null);
-    }
 }

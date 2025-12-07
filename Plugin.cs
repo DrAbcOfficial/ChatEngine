@@ -132,16 +132,13 @@ public class Plugin : IPlugin
                         }
                         string trimmed = msg.Trim().Trim('"');
                         //词语检查
-                        (bool iscensored, var checkResult) = StringChecker.IsIlegalString(trimmed);
-                        if (iscensored)
+                        var checkResult = StringChecker.Check(trimmed);
+                        if (checkResult != null && checkResult.Length > 0)
                         {
                             string detected = string.Empty;
-                            if (checkResult != null)
+                            foreach (var arg in checkResult)
                             {
-                                foreach (var arg in checkResult)
-                                {
-                                    detected += $"{arg.Matched}/";
-                                }
+                                detected += $"{arg.Matched}/";
                             }
                             PlayerInfo.IncreseCensorCount(player, trimmed, detected);
                             var nicewd = ConfigManager.Instance.Config.Censor.NiceWords;
@@ -210,8 +207,8 @@ public class Plugin : IPlugin
             var result = PlayerInfo.PlayerConnected(player, pszName, pszAddress);
             if (!result.Item1)
             {
-                string datetimestr = new DateTimeOffset(result.Item2.BannedUntil!.Value).ToString("o");
-                szRejectReason = string.Format(Language.GetTranlation("player.banned.connect"), datetimestr);
+                string datetimestr = result.Item2.BannedUntil!.Value.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ssZ");
+                szRejectReason = string.Format(Language.GetTranlation("player.banned.connect"), $"{datetimestr}(UTC)");
                 return (MetaResult.SuperCEDE, false);
             }
             return (MetaResult.Handled, true);

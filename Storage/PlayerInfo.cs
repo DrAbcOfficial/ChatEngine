@@ -3,7 +3,6 @@ using ChatEngine.Lang;
 using NuggetMod.Interface;
 using NuggetMod.Wrapper.Engine;
 using System.Collections.Concurrent;
-using System.Numerics;
 
 namespace ChatEngine.Storage
 {
@@ -121,24 +120,23 @@ namespace ChatEngine.Storage
             PlayerInfo? info = GetPlayerInfo(player);
             if (info == null)
                 return;
-            info.TalkedCount++;
+            info.CensorCount++;
             Task.Factory.StartNew(() =>
             {
                 Plugin.SQLStorage.LogDetected(info.SteamID, 0, raw, detected);
             });
-            if(info.TalkedCount >= ConfigManager.Instance.Config.Censor.MaxLimitPerGame)
+            if (info.CensorCount >= ConfigManager.Instance.Config.Censor.MaxLimitPerGame)
             {
                 int bantime = ConfigManager.Instance.Config.Censor.BanDurationMinutes;
                 string reason = string.Format(Language.GetTranlation("player.banned"), bantime);
                 Ban(player, "*DETECTED*", bantime, reason);
                 return;
             }
-            if(info.TalkedCount >= ConfigManager.Instance.Config.Censor.WarnLimitPerGame)
-                Language.PrintWithLang("player.banwarn", Language.PrintTarget.ClientChat, player, $"{info.TalkedCount}/{ConfigManager.Instance.Config.Censor.MaxLimitPerGame}");
+            Language.PrintWithLang("player.banwarn", Language.PrintTarget.ClientChat, player, $"{info.CensorCount}/{ConfigManager.Instance.Config.Censor.MaxLimitPerGame}");
         }
         internal static void ClearAllDetected()
         {
-            foreach(var p in PlayerStorage)
+            foreach (var p in PlayerStorage)
             {
                 p.Value.CensorCount = 0;
             }

@@ -43,12 +43,8 @@ public class Censor
             "今天也是好天气☆"];
     //和谐以后变成的字符
     public string CensorReplacement { get; set; } = "*";
-    //一句话出现多少个关键词封禁
-    public int MaxLimitPerChat { get; set; } = 3;
     //整场游戏总计多少个关键词封禁
     public int MaxLimitPerGame { get; set; } = 5;
-    //暴毙提醒值
-    public int WarnLimitPerGame { get; set; } = 3;
     //封禁时长(分钟)
     public int BanDurationMinutes { get; set; } = 30;
     //敏感词库路径
