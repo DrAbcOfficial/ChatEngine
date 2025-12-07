@@ -10,14 +10,14 @@ internal abstract class BaseMetaModCommand
     protected string _name;
     protected string _description;
     protected List<ArgumentsDescriptor> _arguments;
-    protected bool _admin;
+    protected Enum.Admin _admin;
 
     internal string Name => _name;
     internal string Description => _description;
     internal List<ArgumentsDescriptor> Arguments => _arguments;
-    internal bool Admin => _admin;
+    internal Enum.Admin Admin => _admin;
 
-    protected BaseMetaModCommand(string name, string description, List<ArgumentsDescriptor>? arguments = null, bool admin = false)
+    protected BaseMetaModCommand(string name, string description, List<ArgumentsDescriptor>? arguments = null, Enum.Admin admin = Enum.Admin.Player)
     {
         _name = name;
         _description = description;
@@ -62,7 +62,7 @@ internal abstract class BaseMetaModCommand
         var playerinfo = PlayerInfo.GetPlayerInfo(player);
         if (playerinfo == null)
             return false;
-        if (Admin && playerinfo.Admin == Enum.Admin.Player)
+        if (playerinfo.Admin < Admin)
         {
             Language.PrintWithLang("command.forbidden", target, player, Enum.Admin.Admin);
             return false;

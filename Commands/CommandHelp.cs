@@ -82,7 +82,7 @@ internal class CommandHelp(string n, string d) : BaseMetaModCommand(n, d, null)
             }
             string argPart = ProcessField(argBuilder.ToString().TrimEnd(), 40);
             
-            string adminPart = ProcessField(Language.GetTranlation(cmds.Value.Admin ? "yes" : "no"), 8);
+            string adminPart = ProcessField(cmds.Value.Admin.ToString(), 8);
             
             Language.Print($"{namePart}{descPart}{argPart}{adminPart}", printTarget, player);
         }

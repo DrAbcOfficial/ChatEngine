@@ -4,7 +4,7 @@ using NuggetMod.Wrapper.Engine;
 
 namespace ChatEngine.Commands;
 
-internal class CommandRemoveGag(string n, string d, List<ArgumentsDescriptor>? arguments) : BaseMetaModCommand(n, d, arguments, true)
+internal class CommandRemoveGag(string n, string d, List<ArgumentsDescriptor>? arguments) : BaseMetaModCommand(n, d, arguments, Enum.Admin.Admin)
 {
     protected override bool Excute(List<MetaModArgument> arguments, Language.PrintTarget printTarget, Edict? player = null)
     {
