@@ -21,8 +21,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="DrAbc.NuggetMod" Version="0.0.4" />
-    <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="10.0.0" />
+    <PackageReference Include="DrAbc.NuggetMod" Version="0.0.5" />
+    <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="10.0.1" />
     <PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" Version="3.0.2" />
   </ItemGroup>
 
