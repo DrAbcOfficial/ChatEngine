@@ -3,6 +3,8 @@ name: Build
 on:
   push:
     branches: [ "main" ]
+    tags:
+      - 'v*'
   pull_request:
     branches: [ "main" ]
     
@@ -40,14 +42,14 @@ jobs:
             ${{github.workspace}}/package/
 
       - name: Zipping All
-        if: matrix.os == 'windows-latest'
+        if: matrix.os == 'windows-latest' && startsWith(github.ref, 'refs/tags/')
         uses: vimtor/action-zip@v1
         with:
             files: ${{github.workspace}}/package/dlls
             dest: ${{ matrix.os }}-${{ matrix.runtime }}.zip
 
       - name: Tarball All
-        if: matrix.os != 'windows-latest'
+        if: matrix.os != 'windows-latest' && startsWith(github.ref, 'refs/tags/')
         run: tar -czvf ./${{ matrix.os }}-${{ matrix.runtime }}.tar.gz "${{github.workspace}}/package/dlls"
       
       - name: Create Release Unix
