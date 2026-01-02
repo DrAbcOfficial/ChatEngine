@@ -43,12 +43,12 @@ jobs:
         if: matrix.os == 'windows-latest'
         uses: vimtor/action-zip@v1
         with:
-            files: ./dist
+            files: ${{github.workspace}}/package/dlls
             dest: ${{ matrix.os }}-${{ matrix.runtime }}.zip
 
       - name: Tarball All
         if: matrix.os != 'windows-latest'
-        run: tar -czvf ./${{ matrix.os }}-${{ matrix.runtime }}.tar.gz ./dist
+        run: tar -czvf ./${{ matrix.os }}-${{ matrix.runtime }}.tar.gz "${{github.workspace}}/package/dlls"
       
       - name: Create Release Unix
         if: matrix.os != 'windows-latest' && startsWith(github.ref, 'refs/tags/')
