@@ -38,3 +38,30 @@ jobs:
           name: ChatEngine-${{ matrix.runtime }}
           path: |
             ${{github.workspace}}/package/
+
+      - name: Zipping All
+        if: matrix.os == 'windows-latest'
+        uses: vimtor/action-zip@v1
+        with:
+            files: ./dist
+            dest: ${{ matrix.os }}-${{ matrix.runtime }}.zip
+
+      - name: Tarball All
+        if: matrix.os != 'windows-latest'
+        run: tar -czvf ./${{ matrix.os }}-${{ matrix.runtime }}.tar.gz ./dist
+      
+      - name: Create Release Unix
+        if: matrix.os != 'windows-latest' && startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+            name: ${{ github.ref }}
+            files: |
+              ./${{ matrix.os }}-${{ matrix.runtime }}.tar.gz
+
+      - name: Create Release Win
+        if: matrix.os == 'windows-latest' && startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+            name: ${{ github.ref }}
+            files: |
+              ${{ matrix.os }}-${{ matrix.runtime }}.zip
